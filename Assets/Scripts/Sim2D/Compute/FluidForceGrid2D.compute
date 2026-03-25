@@ -1,0 +1,216 @@
+#pragma kernel ComputeBodyForces
+
+#include "./SpatialHash.hlsl"
+
+static const int NumThreads = 32;
+
+struct DynamicBody2D
+{
+	int shapeType;
+	float2 center;
+	float2 halfExtents;
+	float rotationRadians;
+	float radius;
+	float sampleSpacing;
+	float boundaryBand;
+	float forceScale;
+	float torqueScale;
+};
+
+struct BodyForceData
+{
+	float2 force;
+	float torque;
+	float padding;
+};
+
+StructuredBuffer<float2> Positions;
+StructuredBuffer<float2> Densities;
+StructuredBuffer<uint> SpatialKeys;
+StructuredBuffer<uint> SpatialOffsets;
+StructuredBuffer<DynamicBody2D> Bodies;
+RWStructuredBuffer<BodyForceData> BodyForces;
+
+const int numParticles;
+const int numBodies;
+const float smoothingRadius;
+const float targetDensity;
+const float pressureMultiplier;
+const float nearPressureMultiplier;
+const float gridCellSize;
+const float pressureClamp;
+const int maxSamplesPerAxis;
+
+float PressureFromDensity(float density)
+{
+	return max(0, (density - targetDensity) * pressureMultiplier);
+}
+
+float NearPressureFromDensity(float nearDensity)
+{
+	return max(0, nearPressureMultiplier * nearDensity);
+}
+
+float2 Rotate2D(float2 v, float angle)
+{
+	float s = sin(angle);
+	float c = cos(angle);
+	return float2(c * v.x - s * v.y, s * v.x + c * v.y);
+}
+
+float Cross2D(float2 a, float2 b)
+{
+	return a.x * b.y - a.y * b.x;
+}
+
+float2 SafeNormalize(float2 v, float2 fallback)
+{
+	float lenSq = dot(v, v);
+	return lenSq > 1e-8 ? v * rsqrt(lenSq) : fallback;
+}
+
+float ComputeParticlePressure(float2 densityData)
+{
+	return min(pressureClamp, PressureFromDensity(densityData.x) + NearPressureFromDensity(densityData.y));
+}
+
+float ComputeInfluence(float distance, float radius)
+{
+	float t = saturate(1 - distance / radius);
+	return t * t;
+}
+
+float SamplePressure(float2 pos)
+{
+	int2 originCell = GetCell2D(pos, smoothingRadius);
+	float sqrRadius = smoothingRadius * smoothingRadius;
+	float weightedPressure = 0;
+	float totalWeight = 0;
+
+	for (int i = 0; i < 9; i++)
+	{
+		uint hash = HashCell2D(originCell + offsets2D[i]);
+		uint key = KeyFromHash(hash, numParticles);
+		uint currIndex = SpatialOffsets[key];
+
+		while (currIndex < numParticles)
+		{
+			uint neighbourIndex = currIndex;
+			currIndex++;
+
+			uint neighbourKey = SpatialKeys[neighbourIndex];
+			if (neighbourKey != key)
+			{
+				break;
+			}
+
+			float2 offsetToParticle = Positions[neighbourIndex] - pos;
+			float sqrDst = dot(offsetToParticle, offsetToParticle);
+			if (sqrDst > sqrRadius)
+			{
+				continue;
+			}
+
+			float dst = sqrt(sqrDst);
+			float weight = ComputeInfluence(dst, smoothingRadius);
+			float pressure = ComputeParticlePressure(Densities[neighbourIndex]);
+			weightedPressure += pressure * weight;
+			totalWeight += weight;
+		}
+	}
+
+	return totalWeight > 0 ? weightedPressure / totalWeight : 0;
+}
+
+float BoxSDF(float2 p, float2 halfExtents)
+{
+	float2 q = abs(p) - halfExtents;
+	return length(max(q, 0)) + min(max(q.x, q.y), 0);
+}
+
+float2 BoxNormal(float2 p, float2 halfExtents)
+{
+	float2 clamped = clamp(p, -halfExtents, halfExtents);
+	float2 fallback = abs(p.x) > abs(p.y) ? float2(p.x < 0 ? -1 : 1, 0) : float2(0, p.y < 0 ? -1 : 1);
+	return SafeNormalize(p - clamped, fallback);
+}
+
+float CircleSDF(float2 p, float radius)
+{
+	return length(p) - radius;
+}
+
+float2 CircleNormal(float2 p)
+{
+	return SafeNormalize(p, float2(0, 1));
+}
+
+[numthreads(NumThreads, 1, 1)]
+void ComputeBodyForces(uint3 id : SV_DispatchThreadID)
+{
+	if (id.x >= (uint)numBodies)
+	{
+		return;
+	}
+
+	DynamicBody2D body = Bodies[id.x];
+	float sampleSpacing = max(0.001, body.sampleSpacing);
+	float boundaryBand = max(sampleSpacing, body.boundaryBand);
+	float2 halfBounds = body.shapeType == 0
+		? body.halfExtents + float2(boundaryBand, boundaryBand)
+		: float2(body.radius + boundaryBand, body.radius + boundaryBand);
+	float2 totalForce = 0;
+	float totalTorque = 0;
+	int maxStepsX = min(maxSamplesPerAxis, max(1, (int)ceil((halfBounds.x * 2) / sampleSpacing)));
+	int maxStepsY = min(maxSamplesPerAxis, max(1, (int)ceil((halfBounds.y * 2) / sampleSpacing)));
+	float stepX = (halfBounds.x * 2) / maxStepsX;
+	float stepY = (halfBounds.y * 2) / maxStepsY;
+	float sampleArea = max(stepX * stepY, gridCellSize * gridCellSize * 0.25);
+
+	for (int iy = 0; iy <= maxStepsY; iy++)
+	{
+		float localY = -halfBounds.y + iy * stepY;
+
+		for (int ix = 0; ix <= maxStepsX; ix++)
+		{
+			float localX = -halfBounds.x + ix * stepX;
+			float2 localPos = float2(localX, localY);
+
+			float sdf;
+			float2 localNormal;
+			if (body.shapeType == 0)
+			{
+				sdf = BoxSDF(localPos, body.halfExtents);
+				localNormal = BoxNormal(localPos, body.halfExtents);
+			}
+			else
+			{
+				sdf = CircleSDF(localPos, body.radius);
+				localNormal = CircleNormal(localPos);
+			}
+
+			if (sdf < 0 || sdf > boundaryBand)
+			{
+				continue;
+			}
+
+			float2 worldPos = Rotate2D(localPos, body.rotationRadians) + body.center;
+			float2 worldNormal = Rotate2D(localNormal, body.rotationRadians);
+			float pressure = SamplePressure(worldPos);
+			if (pressure <= 0)
+			{
+				continue;
+			}
+
+			float2 dF = -pressure * worldNormal * sampleArea * body.forceScale;
+			totalForce += dF;
+			totalTorque += Cross2D(worldPos - body.center, dF) * body.torqueScale;
+		}
+	}
+
+	BodyForceData result;
+	result.force = totalForce;
+	result.torque = totalTorque;
+	result.padding = 0;
+	BodyForces[id.x] = result;
+}
