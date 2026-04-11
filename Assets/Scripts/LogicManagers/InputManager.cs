@@ -36,13 +36,8 @@ public class InputManager : MonoBehaviour
         //监听手势输入，这里以空格为例测试输入系统
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            TriggerSpaceKeyAction();
+            ProcessManager.Instance.SwitchToNextState();
         }
-    }
-
-    private void TriggerSpaceKeyAction()
-    {
-        Debug.Log("Space key was pressed!");   //这里可以替换成触发手势识别的代码
     }
 
     //处理手势识别
