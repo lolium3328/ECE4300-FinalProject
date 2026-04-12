@@ -98,14 +98,9 @@ public class FingerPainter : MonoBehaviour
     {
         if (TestForGest.Instance != null)
         {
-            return TestForGest.Instance.IsGestureRecognitionMode();
+            return TestForGest.Instance.IsGestureMode();
         }
 
-        if (ProcessManager.Instance == null)
-        {
-            return true;
-        }
-
-        return ProcessManager.Instance.State == 4 || ProcessManager.Instance.State == 5;
+        return true;
     }
 }

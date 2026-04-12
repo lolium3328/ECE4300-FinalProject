@@ -5,39 +5,47 @@ using System.Reflection;
 
 public class TestForGest : MonoBehaviour
 {
-    private int internalState = 1;
-
     public static TestForGest Instance { get; private set; }
+
+    // 1: 默认, 3: 放置(Spawn), 4: 手势/写(Gesture/Writing)
+    public int state = 1;
 
     private void Awake()
     {
-        if (Instance == null) Instance = this;
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     private void Update()
     {
-        // 按下数字键 1 切换到放置模式 (Internal State 3)
+        // 按下 1 切换到放置状态 (State 3: 放置松饼)
         if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
         {
-            internalState = 3;
+            state = 3;
             Debug.Log("[TestForGest] Switched to Placement Mode (State 3)");
         }
 
-        // 按下数字键 2 切换到手势识别模式 (Internal State 4)
+        // 按下 2 切换到写/手势识别状态 (State 4: 放果酱)
         if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2))
         {
-            internalState = 4;
-            Debug.Log("[TestForGest] Switched to Gesture Recognition Mode (State 4)");
+            state = 4;
+            Debug.Log("[TestForGest] Switched to Writing/Gesture Mode (State 4)");
         }
-    }
-
-    public bool IsGestureRecognitionMode()
-    {
-        return internalState == 4 || internalState == 5;
     }
 
     public bool IsPlacementMode()
     {
-        return internalState == 3;
+        return state == 3;
+    }
+
+    public bool IsGestureMode()
+    {
+        return state == 4 || state == 5;
     }
 }

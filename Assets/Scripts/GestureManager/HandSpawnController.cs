@@ -10,51 +10,42 @@ public class HandSpawnController : MonoBehaviour
     }
 
     [Header("Leap Input")]
-    [Tooltip("Ultraleap 的手部数据来源。这里通常拖入场景里的 Leap Provider。")]
     public LeapProvider leapProvider;
-    [Tooltip("右手用哪个部位来驱动 x 坐标。Palm 是手掌中心，IndexTip 是食指指尖。")]
     public RightHandTrackTarget trackTarget = RightHandTrackTarget.IndexTip;
 
     [Header("Tracked Point")]
-    [Tooltip("场景里真正被移动的点。这个点会被脚本更新位置，并作为生成物体的参考点。")]
     public Transform movingPoint;
-    [Tooltip("固定生成点的 y 坐标。无论右手怎么动，这个点的 y 都保持这个值。")]
     public float fixedY = 0.5f;
-    [Tooltip("固定生成点的 z 坐标。无论右手怎么动，这个点的 z 都保持这个值。")]
     public float fixedZ = 0f;
-    [Tooltip("右手原始 x 输入范围的左边界。归一化模式下，手移动到这里会映射到 Min X。")]
     public float inputMinX = -0.2f;
-    [Tooltip("右手原始 x 输入范围的右边界。归一化模式下，手移动到这里会映射到 Max X。")]
     public float inputMaxX = 0.2f;
-    [Tooltip("场景里移动点允许达到的最小 x。归一化之后的结果会映射到这个左边界。")]
     public float minX = -1f;
-    [Tooltip("场景里移动点允许达到的最大 x。归一化之后的结果会映射到这个右边界。")]
     public float maxX = 1f;
     [Range(0f, 30f)]
-    [Tooltip("点跟随右手的速度。值越大越灵敏，值越小越平滑。")]
     public float followSpeed = 15f;
-    [Tooltip("开启后会在运行时自动扩展 Input Min X / Input Max X，适合先自由摆手做范围标定。")]
     public bool autoExpandInputRange = true;
 
     [Header("Spawn")]
-    [Tooltip("左手触发生成时，要实例化出来的预制体。")]
     public GameObject prefabToSpawn;
-    [Tooltip("预览物体的材质（可选）。如果不填，将直接使用原预制体作为预览。")]
     public Material previewMaterial;
-    [Tooltip("新生成物体的父物体。留空则直接生成在场景根节点下。")]
     public Transform spawnParent;
-    [Tooltip("两次生成之间的最小间隔时间，防止手势持续识别时一帧生成一个。")]
     public float spawnCooldown = 0.2f;
 
     private float _currentX;
     private float _lastSpawnTime = -999f;
     private GameObject _previewInstance;
 
+    /// <summary>
+    /// 当脚本在 Inspector 中被重置或添加时调用，默认将当前物体设为移动参考点。
+    /// </summary>
     private void Reset()
     {
         movingPoint = transform;
     }
 
+    /// <summary>
+    /// 初始化：确定参考点位置并创建预览物体。
+    /// </summary>
     private void Awake()
     {
         if (movingPoint == null)
@@ -65,36 +56,11 @@ public class HandSpawnController : MonoBehaviour
         Vector3 startPosition = movingPoint.position;
         _currentX = startPosition.x;
         ApplyPointPosition(_currentX);
-
-        CreatePreview();
     }
 
-    private void CreatePreview()
-    {
-        if (prefabToSpawn == null) return;
-
-        // 创建预览实例
-        _previewInstance = Instantiate(prefabToSpawn, movingPoint.position, Quaternion.identity, movingPoint);
-        _previewInstance.name = "PlacementPreview";
-
-        // 移除或禁用预览物体的碰撞体，防止物理引擎干扰
-        foreach (var col in _previewInstance.GetComponentsInChildren<Collider>())
-        {
-            col.enabled = false;
-        }
-
-        // 如果设置了预览材质（比如半透明），则应用它
-        if (previewMaterial != null)
-        {
-            foreach (var renderer in _previewInstance.GetComponentsInChildren<Renderer>())
-            {
-                renderer.material = previewMaterial;
-            }
-        }
-
-        _previewInstance.SetActive(false);
-    }
-
+    /// <summary>
+    /// 启用脚本时，订阅 LeapProvider 的帧更新事件。
+    /// </summary>
     private void OnEnable()
     {
         if (leapProvider != null)
@@ -103,6 +69,9 @@ public class HandSpawnController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 禁用脚本时，取消订阅。
+    /// </summary>
     private void OnDisable()
     {
         if (leapProvider != null)
@@ -111,37 +80,41 @@ public class HandSpawnController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 每帧执行：检测当前是否处于放置模式，获取右手位置并平滑移动预览点。
+    /// </summary>
     private void OnUpdateFrame(Frame frame)
     {
+        // 检查当前模式是否为放置模式
         if (!IsPlacementModuleActive())
         {
-            if (_previewInstance != null) _previewInstance.SetActive(false);
             return;
         }
 
         Hand rightHand = frame.GetHand(Chirality.Right);
         if (rightHand == null)
         {
-            if (_previewInstance != null) _previewInstance.SetActive(false);
             return;
         }
 
-        if (_previewInstance != null) _previewInstance.SetActive(true);
-
         float rawX = GetTrackedX(rightHand);
 
+        // 如果开启自动扩展，根据手拉伸的极限自动调整输入范围
         if (autoExpandInputRange)
         {
             inputMinX = Mathf.Min(inputMinX, rawX);
             inputMaxX = Mathf.Max(inputMaxX, rawX);
         }
 
+        // 将手部物理坐标映射到场景坐标
         float targetX = NormalizeAndMapX(rawX);
-
         _currentX = Mathf.Lerp(_currentX, targetX, followSpeed * Time.deltaTime);
         ApplyPointPosition(_currentX);
     }
 
+    /// <summary>
+    /// 根据配置获取右手的目标 X 轴坐标（手掌或食指尖）。
+    /// </summary>
     private float GetTrackedX(Hand rightHand)
     {
         if (trackTarget == RightHandTrackTarget.Palm)
@@ -158,6 +131,9 @@ public class HandSpawnController : MonoBehaviour
         return rightHand.PalmPosition.x;
     }
 
+    /// <summary>
+    /// 更新参考点 Transform 的实际场景位置，锁定 Y 和 Z 轴。
+    /// </summary>
     private void ApplyPointPosition(float x)
     {
         if (movingPoint == null)
@@ -168,6 +144,9 @@ public class HandSpawnController : MonoBehaviour
         movingPoint.position = new Vector3(x, fixedY, fixedZ);
     }
 
+    /// <summary>
+    /// 将手部的原始 X 坐标映射到场景设定的 MinX 和 MaxX 范围内。
+    /// </summary>
     private float NormalizeAndMapX(float rawX)
     {
         float inputRange = inputMaxX - inputMinX;
@@ -180,6 +159,9 @@ public class HandSpawnController : MonoBehaviour
         return Mathf.Lerp(minX, maxX, normalizedX);
     }
 
+    /// <summary>
+    /// 执行实例化：在当前参考点位置克隆生成物体。
+    /// </summary>
     public void SpawnAtCurrentPoint()
     {
         if (!IsPlacementModuleActive())
@@ -192,6 +174,7 @@ public class HandSpawnController : MonoBehaviour
             return;
         }
 
+        // 防连发冷却检查
         if (Time.time - _lastSpawnTime < spawnCooldown)
         {
             return;
@@ -201,6 +184,9 @@ public class HandSpawnController : MonoBehaviour
         Instantiate(prefabToSpawn, movingPoint.position, Quaternion.identity, spawnParent);
     }
 
+    /// <summary>
+    /// 将当前的锁定位置 Y 和 Z 设置为参考点目前的实时坐标。
+    /// </summary>
     public void SetFixedYZFromCurrentPoint()
     {
         if (movingPoint == null)
@@ -212,6 +198,9 @@ public class HandSpawnController : MonoBehaviour
         fixedZ = movingPoint.position.z;
     }
 
+    /// <summary>
+    /// 根据当前右手的实时位置快速重置输入范围边界。
+    /// </summary>
     public void CalibrateInputRangeFromCurrentHand()
     {
         if (leapProvider == null)
@@ -231,6 +220,9 @@ public class HandSpawnController : MonoBehaviour
         inputMaxX = rawX;
     }
 
+    /// <summary>
+    /// 核心判断：询问 TestForGest 单例当前是否应该开启“放置功能”。
+    /// </summary>
     private bool IsPlacementModuleActive()
     {
         if (TestForGest.Instance != null)
@@ -238,11 +230,6 @@ public class HandSpawnController : MonoBehaviour
             return TestForGest.Instance.IsPlacementMode();
         }
 
-        if (ProcessManager.Instance == null)
-        {
-            return true;
-        }
-
-        return ProcessManager.Instance.State == 3;
+        return true;
     }
 }
