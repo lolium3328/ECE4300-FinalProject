@@ -26,14 +26,22 @@ public class HandSpawnController : MonoBehaviour
     public bool autoExpandInputRange = true;
 
     [Header("Spawn")]
+    public GameObject previewPrefab;
     public GameObject prefabToSpawn;
     public Material previewMaterial;
     public Transform spawnParent;
     public float spawnCooldown = 0.2f;
+    [Range(0f, 1f)]
+    public float previewIdleAlpha = 0.5f;
+    [Range(0f, 1f)]
+    public float previewHighlightAlpha = 1f;
+    public float previewHighlightDuration = 2f;
 
     private float _currentX;
     private float _lastSpawnTime = -999f;
     private GameObject _previewInstance;
+    private Renderer[] _previewRenderers;
+    private Coroutine _previewAlphaRoutine;
 
     /// <summary>
     /// 当脚本在 Inspector 中被重置或添加时调用，默认将当前物体设为移动参考点。
@@ -56,6 +64,7 @@ public class HandSpawnController : MonoBehaviour
         Vector3 startPosition = movingPoint.position;
         _currentX = startPosition.x;
         ApplyPointPosition(_currentX);
+        EnsurePreviewInstance();
     }
 
     /// <summary>
@@ -144,6 +153,134 @@ public class HandSpawnController : MonoBehaviour
         movingPoint.position = new Vector3(x, fixedY, fixedZ);
     }
 
+    private void EnsurePreviewInstance()
+    {
+        if (_previewInstance != null || movingPoint == null)
+        {
+            return;
+        }
+
+        GameObject previewSource = previewPrefab != null ? previewPrefab : prefabToSpawn;
+        if (previewSource == null)
+        {
+            return;
+        }
+
+        _previewInstance = Instantiate(previewSource, movingPoint);
+        _previewInstance.name = previewSource.name + "_Preview";
+        _previewInstance.transform.localPosition = Vector3.zero;
+        _previewInstance.transform.localRotation = Quaternion.identity;
+        _previewInstance.transform.localScale = previewSource.transform.localScale;
+
+        foreach (Collider col in _previewInstance.GetComponentsInChildren<Collider>())
+        {
+            col.enabled = false;
+        }
+
+        foreach (Rigidbody body in _previewInstance.GetComponentsInChildren<Rigidbody>())
+        {
+            body.isKinematic = true;
+            body.useGravity = false;
+        }
+
+        _previewRenderers = _previewInstance.GetComponentsInChildren<Renderer>(true);
+        if (previewMaterial != null)
+        {
+            foreach (Renderer previewRenderer in _previewRenderers)
+            {
+                if (previewRenderer == null)
+                {
+                    continue;
+                }
+
+                previewRenderer.material = previewMaterial;
+            }
+        }
+
+        SetPreviewAlpha(previewIdleAlpha);
+    }
+
+    private void SetPreviewAlpha(float alpha)
+    {
+        if (_previewRenderers == null)
+        {
+            return;
+        }
+
+        float clampedAlpha = Mathf.Clamp01(alpha);
+        foreach (Renderer previewRenderer in _previewRenderers)
+        {
+            if (previewRenderer == null)
+            {
+                continue;
+            }
+
+            Material[] materials = previewRenderer.materials;
+            for (int i = 0; i < materials.Length; i++)
+            {
+                Material material = materials[i];
+                if (material == null)
+                {
+                    continue;
+                }
+
+                if (material.HasProperty("_BaseColor"))
+                {
+                    Color baseColor = material.GetColor("_BaseColor");
+                    baseColor.a = clampedAlpha;
+                    material.SetColor("_BaseColor", baseColor);
+                }
+
+                if (material.HasProperty("_Color"))
+                {
+                    Color color = material.color;
+                    color.a = clampedAlpha;
+                    material.color = color;
+                }
+            }
+        }
+    }
+
+    private void PlayPreviewHighlight()
+    {
+        EnsurePreviewInstance();
+        if (_previewInstance == null || !gameObject.activeInHierarchy)
+        {
+            return;
+        }
+
+        if (_previewAlphaRoutine != null)
+        {
+            StopCoroutine(_previewAlphaRoutine);
+        }
+
+        _previewAlphaRoutine = StartCoroutine(AnimatePreviewAlpha(previewIdleAlpha, previewHighlightAlpha, previewHighlightDuration));
+    }
+
+    private System.Collections.IEnumerator AnimatePreviewAlpha(float fromAlpha, float toAlpha, float duration)
+    {
+        if (duration <= 0f)
+        {
+            SetPreviewAlpha(toAlpha);
+            _previewAlphaRoutine = null;
+            yield break;
+        }
+
+        SetPreviewAlpha(fromAlpha);
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            SetPreviewAlpha(Mathf.Lerp(fromAlpha, toAlpha, t));
+            yield return null;
+        }
+
+        SetPreviewAlpha(toAlpha);
+        _previewAlphaRoutine = null;
+    }
+
     /// <summary>
     /// 将手部的原始 X 坐标映射到场景设定的 MinX 和 MaxX 范围内。
     /// </summary>
@@ -181,7 +318,9 @@ public class HandSpawnController : MonoBehaviour
         }
 
         _lastSpawnTime = Time.time;
-        Instantiate(prefabToSpawn, movingPoint.position, Quaternion.identity, spawnParent);
+        Transform actualSpawnParent = spawnParent == movingPoint ? null : spawnParent;
+        Instantiate(prefabToSpawn, movingPoint.position, Quaternion.identity, actualSpawnParent);
+        PlayPreviewHighlight();
     }
 
     /// <summary>
