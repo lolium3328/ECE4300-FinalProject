@@ -28,19 +28,29 @@ public class FingerPainter : MonoBehaviour
 
     public void StartLogging()
     {
+        if (!IsGestureModuleActive())
+        {
+            return;
+        }
+
         isPointing = true;
-        // Debug.Log("开始追踪食指位置");
     }
 
     public void StopLogging()
     {
         isPointing = false;
         NotifyGestureManagerStopped();
-        // Debug.Log("停止追踪");
     }
 
     private void OnUpdateFrame(Frame frame)
     {
+        if (!IsGestureModuleActive())
+        {
+            isPointing = false;
+            NotifyGestureManagerStopped();
+            return;
+        }
+
         Hand hand = frame.GetHand(handType);
         if (hand == null)
         {
@@ -62,6 +72,9 @@ public class FingerPainter : MonoBehaviour
 
         Vector3 tipPosition = indexFinger.TipPosition;
 
+        // 在控制台输出指尖的实时坐标
+        Debug.Log($"[FingerPainter] Tip Position: {tipPosition}");
+
         if (trailRenderer != null)
         {
             trailRenderer.transform.position = tipPosition;
@@ -71,11 +84,6 @@ public class FingerPainter : MonoBehaviour
         {
             gestureManager.UpdateFromFingers(tipPosition, isPointing);
         }
-
-        if (isPointing)
-        {
-            //Debug.Log($"Index Finger Tip Position: {tipPosition}");
-        }
     }
 
     private void NotifyGestureManagerStopped()
@@ -84,5 +92,20 @@ public class FingerPainter : MonoBehaviour
         {
             gestureManager.UpdateFromFingers(Vector3.zero, false);
         }
+    }
+
+    private bool IsGestureModuleActive()
+    {
+        if (TestForGest.Instance != null)
+        {
+            return TestForGest.Instance.IsGestureRecognitionMode();
+        }
+
+        if (ProcessManager.Instance == null)
+        {
+            return true;
+        }
+
+        return ProcessManager.Instance.State == 4 || ProcessManager.Instance.State == 5;
     }
 }

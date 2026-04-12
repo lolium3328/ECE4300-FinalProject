@@ -86,6 +86,11 @@ public class GestureManager : MonoBehaviour
 
     private void Update()
     {
+        if (!IsGestureModuleActive())
+        {
+            return;
+        }
+
         if (Input.GetKeyDown(KeyCode.R))
         {
             SaveTemplate();
@@ -104,6 +109,11 @@ public class GestureManager : MonoBehaviour
 
     public void StartLogging()
     {
+        if (!IsGestureModuleActive())
+        {
+            return;
+        }
+
         isPointing = true;
         // Debug.Log("[GestureManager] StartLogging called. isPointing=true");
     }
@@ -117,6 +127,17 @@ public class GestureManager : MonoBehaviour
 
     private void OnUpdateFrame(Frame frame)
     {
+        if (!IsGestureModuleActive())
+        {
+            if (isPointing || wasPointingLastFrame)
+            {
+                isPointing = false;
+                UpdateFromFingers(Vector3.zero, false);
+            }
+
+            return;
+        }
+
         Hand hand = frame.GetHand(handType);
         if (hand == null)
         {
@@ -158,6 +179,11 @@ public class GestureManager : MonoBehaviour
 
     public void UpdateFromFingers(Vector3 fingerPos, bool isPointing)
     {
+        if (!IsGestureModuleActive())
+        {
+            isPointing = false;
+        }
+
         if (isPointing)
         {
             // Debug.Log($"[GestureManager] UpdateFromFingers received point={fingerPos}, wasPointingLastFrame={wasPointingLastFrame}");
@@ -178,6 +204,21 @@ public class GestureManager : MonoBehaviour
         }
 
         wasPointingLastFrame = isPointing;
+    }
+
+    private bool IsGestureModuleActive()
+    {
+        if (TestForGest.Instance != null)
+        {
+            return TestForGest.Instance.IsGestureRecognitionMode();
+        }
+
+        if (ProcessManager.Instance == null)
+        {
+            return true;
+        }
+
+        return ProcessManager.Instance.State == 4 || ProcessManager.Instance.State == 5;
     }
 
     private void StartStroke()
