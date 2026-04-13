@@ -73,7 +73,7 @@ public class FingerPainter : MonoBehaviour
         Vector3 tipPosition = indexFinger.TipPosition;
 
         // 在控制台输出指尖的实时坐标
-        Debug.Log($"[FingerPainter] Tip Position: {tipPosition}");
+        //Debug.Log($"[FingerPainter] Tip Position: {tipPosition}");
 
         if (trailRenderer != null)
         {

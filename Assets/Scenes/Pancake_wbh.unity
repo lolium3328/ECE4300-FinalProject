@@ -269,7 +269,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8f3c3e68354d9a4e9d7626674d1447b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  state: 3
+  state: 4
 --- !u!4 &100325887
 Transform:
   m_ObjectHideFlags: 0
@@ -654,6 +654,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalRotation.z
       value: -0.30050483
+      objectReference: {fileID: 0}
+    - target: {fileID: 3542742743186244730, guid: 3fd614cc7c9d1554dbfa8b2110833875,
+        type: 3}
+      propertyPath: _contactMode
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4111605438234254544, guid: 3fd614cc7c9d1554dbfa8b2110833875,
         type: 3}
@@ -1086,8 +1091,13 @@ PrefabInstance:
       value: -0.029144231
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 3595530191373547411, guid: 3fd614cc7c9d1554dbfa8b2110833875, type: 3}
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 3542742743186244731, guid: 3fd614cc7c9d1554dbfa8b2110833875,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1143467821}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3fd614cc7c9d1554dbfa8b2110833875, type: 3}
 --- !u!1 &358432966
@@ -1170,7 +1180,7 @@ MonoBehaviour:
   previewPrefab: {fileID: 0}
   prefabToSpawn: {fileID: 4364890367736083981, guid: 9941bc6fd2b0fda41a8588c42433bb16,
     type: 3}
-  previewMaterial: {fileID: 0}
+  previewMaterial: {fileID: 2100000, guid: 48db17d390781614ab09699507abd86e, type: 2}
   spawnParent: {fileID: 358432967}
   spawnCooldown: 0.2
   previewIdleAlpha: 0.5
@@ -1298,6 +1308,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &1077652891 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3542742743186244731, guid: 3fd614cc7c9d1554dbfa8b2110833875,
+    type: 3}
+  m_PrefabInstance: {fileID: 249816395}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1077652892 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3542742743186244730, guid: 3fd614cc7c9d1554dbfa8b2110833875,
+    type: 3}
+  m_PrefabInstance: {fileID: 249816395}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d69077fd953cb86488e8a7b2090e7754, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1091069093 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3230226736031474660, guid: 3fd614cc7c9d1554dbfa8b2110833875,
@@ -1310,6 +1338,51 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d820529baa49f440a9229028315580b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1143467820
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1143467821}
+  - component: {fileID: 1143467822}
+  m_Layer: 0
+  m_Name: NoContact
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1143467821
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1143467820}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.4740023, y: -1.1009178, z: -0.42601863}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1077652891}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1143467822
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1143467820}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ccd52cc33b860ea4fa4226eedafbdb14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  physicalHandsManager: {fileID: 1077652892}
 --- !u!1001 &1275459511
 PrefabInstance:
   m_ObjectHideFlags: 0
