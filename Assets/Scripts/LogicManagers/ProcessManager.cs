@@ -6,7 +6,10 @@ public class ProcessManager : MonoBehaviour
 {
 
     public static ProcessManager Instance { get; private set; }   //做成了全局静态实例，其他脚本通过ProcessManager.Instance直接访问
-    [SerializeField] private DialogueData myDialogueData;    //对话数据，后续可以在编辑器里设置成public，或者通过其他方式加载，这里先不写了
+    [SerializeField] private DialogueData Dialogue1;    //开始的剧情对话
+    [SerializeField] private DialogueData Dialogue2;    //结算对话，高分结局
+    [SerializeField] private DialogueData Dialogue3;    //结算对话，中等分数结局
+    [SerializeField] private DialogueData Dialogue4;    //结算对话，低分结局
 
     private int state = 1;
     /*
@@ -20,6 +23,8 @@ public class ProcessManager : MonoBehaviour
     7：等待下一轮
     */
     private float timer = 0f;
+    private int score = 60;    //分数，暂时没用到，后续可以根据制作的松饼质量来调整分数
+
 
     public int State    //其他脚本通过ProcessManager.Instance.State访问当前状态，只读
     {
@@ -42,7 +47,7 @@ public class ProcessManager : MonoBehaviour
     {
         state = 1;    //初始状态为1，等待开始
         // 启动完整对话序列
-        DialogueManager.Instance.StartDialogue(myDialogueData, 
+        DialogueManager.Instance.StartDialogue(Dialogue1, 
             () => { Debug.Log("对话完成！"); }
 );
     }
@@ -121,6 +126,26 @@ public class ProcessManager : MonoBehaviour
                 break;
             case 5:
                 StartCoroutine(WaitForState5AndSwitch(5f));    //放topping状态启动等待协程
+                break;
+            case 6:
+                if (score >= 80)   //根据分数调整结算对话，划分分数等级触发不一样的对话
+                {
+                    DialogueManager.Instance.StartDialogue(Dialogue2, 
+                    () => { Debug.Log("结算对话完成！"); }
+                    );
+                }
+                else if (score >= 50)
+                {
+                    DialogueManager.Instance.StartDialogue(Dialogue3, 
+                    () => { Debug.Log("结算对话完成！"); }
+                    );
+                }
+                else
+                {
+                    DialogueManager.Instance.StartDialogue(Dialogue4, 
+                    () => { Debug.Log("结算对话完成！"); }
+                    );
+                }
                 break;
         }
     }

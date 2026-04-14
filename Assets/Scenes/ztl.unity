@@ -571,7 +571,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &492832036
 RectTransform:
   m_ObjectHideFlags: 0
@@ -593,7 +593,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -103.2}
-  m_SizeDelta: {x: 756, y: 199}
+  m_SizeDelta: {x: 770, y: 199}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &492832037
 MonoBehaviour:
@@ -1135,7 +1135,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf7f1b403c28d154cb794af6f5824b57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  myDialogueData: {fileID: 11400000, guid: fda635481829ef34e8b145d55a6888f4, type: 2}
+  Dialogue1: {fileID: 11400000, guid: fda635481829ef34e8b145d55a6888f4, type: 2}
+  Dialogue2: {fileID: 11400000, guid: a48fd2091a472f3478e9c13c8880ca8f, type: 2}
+  Dialogue3: {fileID: 11400000, guid: ae8874377b82f68468d11cf7c9fb7e17, type: 2}
+  Dialogue4: {fileID: 11400000, guid: 4104a02b9bd98cf419b5b7804f27b391, type: 2}
 --- !u!1 &1477405204
 GameObject:
   m_ObjectHideFlags: 0
@@ -1220,8 +1223,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 45.6, y: 0}
-  m_SizeDelta: {x: 388.6, y: 50}
+  m_AnchoredPosition: {x: 45.6, y: 44}
+  m_SizeDelta: {x: 487.3, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1550613438
 MonoBehaviour:
@@ -1243,7 +1246,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Iroha, I'm hungry
+  m_text: Iroha, I'm hungry, balabala...
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
