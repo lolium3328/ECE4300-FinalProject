@@ -36,14 +36,7 @@ public class InputManager : MonoBehaviour
         //监听手势输入，这里以空格为例测试输入系统
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (ProcessManager.Instance.State == 1)   //如果当前状态是1，按空格过对话情节
-            {
-                DialogueManager.Instance.TriggerNextInput();
-            }
-            else
-            {
-                ProcessManager.Instance.SwitchToNextState();
-            }
+            ProcessManager.Instance.SwitchToNextState();
         }
     }
 

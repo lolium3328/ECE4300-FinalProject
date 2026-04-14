@@ -6,7 +6,6 @@ public class ProcessManager : MonoBehaviour
 {
 
     public static ProcessManager Instance { get; private set; }   //做成了全局静态实例，其他脚本通过ProcessManager.Instance直接访问
-    [SerializeField] private DialogueData myDialogueData;    //对话数据，后续可以在编辑器里设置成public，或者通过其他方式加载，这里先不写了
 
     private int state = 1;
     /*
@@ -41,10 +40,6 @@ public class ProcessManager : MonoBehaviour
     private void Start()
     {
         state = 1;    //初始状态为1，等待开始
-        // 启动完整对话序列
-        DialogueManager.Instance.StartDialogue(myDialogueData, 
-            () => { Debug.Log("对话完成！"); }
-);
     }
 
     private void Update()   //流程管理，以及发信号
