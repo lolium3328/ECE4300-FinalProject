@@ -31,6 +31,7 @@ public class HandSpawnController : MonoBehaviour
     public Material previewMaterial;
     public Transform spawnParent;
     public float spawnCooldown = 0.2f;
+    public Vector3 spawnEulerOffset = new Vector3(-90f, 0f, 0f);
     [Range(0f, 1f)]
     public float previewIdleAlpha = 0.5f;
     [Range(0f, 1f)]
@@ -169,7 +170,7 @@ public class HandSpawnController : MonoBehaviour
         _previewInstance = Instantiate(previewSource, movingPoint);
         _previewInstance.name = previewSource.name + "_Preview";
         _previewInstance.transform.localPosition = Vector3.zero;
-        _previewInstance.transform.localRotation = Quaternion.identity;
+        _previewInstance.transform.localRotation = Quaternion.Euler(spawnEulerOffset);
         _previewInstance.transform.localScale = previewSource.transform.localScale;
 
         foreach (Collider col in _previewInstance.GetComponentsInChildren<Collider>())
@@ -337,8 +338,9 @@ public class HandSpawnController : MonoBehaviour
 
         _lastSpawnTime = Time.time;
         Transform actualSpawnParent = spawnParent == movingPoint ? null : spawnParent;
+        Quaternion spawnRotation = Quaternion.Euler(spawnEulerOffset);
        
-        GameObject spawnedObject = Instantiate(prefabToSpawn, movingPoint.position, Quaternion.identity, actualSpawnParent);
+        GameObject spawnedObject = Instantiate(prefabToSpawn, movingPoint.position, spawnRotation, actualSpawnParent);
          Debug.Log("[HandSpawnController] ");
         if (spawnedObject.GetComponent<SpawnedObjectLife>() == null)
         {
