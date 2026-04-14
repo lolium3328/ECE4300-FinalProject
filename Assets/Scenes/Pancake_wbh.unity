@@ -1526,6 +1526,93 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   physicalHandsManager: {fileID: 1077652892}
+--- !u!1 &1208416237
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1208416239}
+  - component: {fileID: 1208416238}
+  - component: {fileID: 1208416240}
+  m_Layer: 0
+  m_Name: TriggerBox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1208416238
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1208416237}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9881908634916864c98f4d585f0dcff1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  triggerBox: {fileID: 0}
+  judgeLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  queryTriggerInteraction: 2
+  requirements: []
+  rejectUnexpectedTypes: 1
+  recipeScoreMax: 70
+  concentricityScoreMax: 30
+  perfectRadius: 0.02
+  zeroScoreRadius: 0.25
+  logJudgeResult: 1
+  judgeWhenChecked: 0
+  lastJudgeSummary: '[TriggerBoxJudge] JudgeWhenChecked only works reliably in Play
+    Mode.'
+  lastTotalObjectCount: 0
+  lastRecipeMatched: 0
+  lastRecipeScore: 0
+  lastConcentricityScore: 0
+  lastTotalScore: 0
+  lastAnchorPoint: {x: 0, y: 0, z: 0}
+--- !u!4 &1208416239
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1208416237}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.36, y: 1.36, z: 0.28}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1208416240
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1208416237}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.068577, y: 1.1328113, z: 0.51468384}
+  m_Center: {x: -0.10415387, y: 0.066405654, z: 0.00877887}
 --- !u!1001 &1275459511
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1898,3 +1985,4 @@ SceneRoots:
   - {fileID: 1967992076}
   - {fileID: 49738663}
   - {fileID: 1304338858}
+  - {fileID: 1208416239}
