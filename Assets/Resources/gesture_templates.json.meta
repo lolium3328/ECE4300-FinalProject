@@ -1,6 +1,11 @@
 fileFormatVersion: 2
+<<<<<<< Updated upstream:Assets/Resources/gesture_templates.json.meta
 guid: 8e923e06a3f3aaa4985ec5d1497ba22c
 TextScriptImporter:
+=======
+guid: 938ba5f0d9f9a5a45adfc71a911e149f
+PrefabImporter:
+>>>>>>> Stashed changes:Assets/Prefabs/Cube (1).prefab.meta
   externalObjects: {}
   userData: 
   assetBundleName: 
