@@ -301,25 +301,61 @@ public class HandSpawnController : MonoBehaviour
     /// </summary>
     public void SpawnAtCurrentPoint()
     {
+        Debug.Log("[HandSpawnController] SpawnAtCurrentPoint called.");
         if (!IsPlacementModuleActive())
         {
+             Debug.Log("[HandSpawnController] 当前不处于放置模式，已取消生成。");
             return;
         }
+        Debug.Log("[HandSpawnController] 2.");
 
         if (prefabToSpawn == null || movingPoint == null)
         {
+            Debug.Log("[HandSpawnController] prefabToSpawn 或 movingPoint 为空，已取消生成。");
             return;
         }
-
+            Debug.Log("[HandSpawnController] 3.");
         // 防连发冷却检查
         if (Time.time - _lastSpawnTime < spawnCooldown)
         {
+            Debug.Log("[HandSpawnController] 生成冷却中，已取消生成。");
+            return;
+        }
+            Debug.Log("[HandSpawnController] 4.");
+        if (!PrefabIdentity.TryGetIdentity(prefabToSpawn.transform, out PrefabIdentity prefabIdentity))
+        {
+            Debug.LogWarning("[HandSpawnController] prefabToSpawn 缺少 PrefabIdentity，已取消生成。", prefabToSpawn);
             return;
         }
 
+        if (SpawnLimitManager.Instance != null && !SpawnLimitManager.Instance.CanSpawn(prefabIdentity))
+        {
+            Debug.Log($"[HandSpawnController] {prefabIdentity.Type} 已达到最大生成数量。");
+            return;
+        }
+            Debug.Log("[HandSpawnController] 5.");
+
         _lastSpawnTime = Time.time;
         Transform actualSpawnParent = spawnParent == movingPoint ? null : spawnParent;
-        Instantiate(prefabToSpawn, movingPoint.position, Quaternion.identity, actualSpawnParent);
+       
+        GameObject spawnedObject = Instantiate(prefabToSpawn, movingPoint.position, Quaternion.identity, actualSpawnParent);
+         Debug.Log("[HandSpawnController] ");
+        if (spawnedObject.GetComponent<SpawnedObjectLife>() == null)
+        {
+            spawnedObject.AddComponent<SpawnedObjectLife>();
+        }
+
+        if (SpawnLimitManager.Instance != null)
+        {
+            bool registered = SpawnLimitManager.Instance.RegisterSpawn(spawnedObject);
+            if (!registered)
+            {
+                Debug.LogWarning("[HandSpawnController] 生成后的对象登记失败，已销毁该实例。", spawnedObject);
+                Destroy(spawnedObject);
+                return;
+            }
+        }
+
         PlayPreviewHighlight();
     }
 
