@@ -31,7 +31,7 @@ public class HandSpawnController : MonoBehaviour
     public Material previewMaterial;
     public Transform spawnParent;
     public float spawnCooldown = 0.2f;
-    public Vector3 spawnEulerOffset = new Vector3(-90f, 0f, 0f);
+    public Vector3 spawnEulerOffset = Vector3.zero;
     [Range(0f, 1f)]
     public float previewIdleAlpha = 0.5f;
     [Range(0f, 1f)]
@@ -201,6 +201,44 @@ public class HandSpawnController : MonoBehaviour
         SetPreviewAlpha(previewIdleAlpha);
     }
 
+    public void SetPrefabToSpawn(GameObject newPrefab)
+    {
+        if (newPrefab == null)
+        {
+            Debug.LogWarning("[HandSpawnController] SetPrefabToSpawn received a null prefab.");
+            return;
+        }
+
+        GameObject previousSpawnPrefab = prefabToSpawn;
+        prefabToSpawn = newPrefab;
+
+        // Keep the preview in sync when it was following the old spawn prefab.
+        if (previewPrefab == null || previewPrefab == previousSpawnPrefab)
+        {
+            previewPrefab = newPrefab;
+        }
+
+        RefreshPreview();
+    }
+
+    private void RefreshPreview()
+    {
+        if (_previewAlphaRoutine != null)
+        {
+            StopCoroutine(_previewAlphaRoutine);
+            _previewAlphaRoutine = null;
+        }
+
+        if (_previewInstance != null)
+        {
+            Destroy(_previewInstance);
+            _previewInstance = null;
+        }
+
+        _previewRenderers = null;
+        EnsurePreviewInstance();
+    }
+
     private void SetPreviewAlpha(float alpha)
     {
         if (_previewRenderers == null)
@@ -308,21 +346,17 @@ public class HandSpawnController : MonoBehaviour
              Debug.Log("[HandSpawnController] 当前不处于放置模式，已取消生成。");
             return;
         }
-        Debug.Log("[HandSpawnController] 2.");
-
         if (prefabToSpawn == null || movingPoint == null)
         {
             Debug.Log("[HandSpawnController] prefabToSpawn 或 movingPoint 为空，已取消生成。");
             return;
         }
-            Debug.Log("[HandSpawnController] 3.");
         // 防连发冷却检查
         if (Time.time - _lastSpawnTime < spawnCooldown)
         {
             Debug.Log("[HandSpawnController] 生成冷却中，已取消生成。");
             return;
         }
-            Debug.Log("[HandSpawnController] 4.");
         if (!PrefabIdentity.TryGetIdentity(prefabToSpawn.transform, out PrefabIdentity prefabIdentity))
         {
             Debug.LogWarning("[HandSpawnController] prefabToSpawn 缺少 PrefabIdentity，已取消生成。", prefabToSpawn);
@@ -334,7 +368,6 @@ public class HandSpawnController : MonoBehaviour
             Debug.Log($"[HandSpawnController] {prefabIdentity.Type} 已达到最大生成数量。");
             return;
         }
-            Debug.Log("[HandSpawnController] 5.");
 
         _lastSpawnTime = Time.time;
         Transform actualSpawnParent = spawnParent == movingPoint ? null : spawnParent;

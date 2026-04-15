@@ -28,6 +28,9 @@ public class GestureManager : MonoBehaviour
 
     [SerializeField] private string lastRecognizedLabel = "None";
     [SerializeField] private float lastMatchDistance = float.MaxValue;
+    //添加两个只读属性，以便外部访问识别结果和匹配距离
+    public string LastRecognizedLabel => lastRecognizedLabel;
+    public float LastMatchDistance => lastMatchDistance;
 
     private readonly List<GesturePoint> currentStrokePoints = new List<GesturePoint>();
     private readonly List<GesturePoint> allPoints = new List<GesturePoint>();
