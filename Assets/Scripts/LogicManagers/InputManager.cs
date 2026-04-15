@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 public class InputManager : MonoBehaviour
 {
     public static InputManager Instance { get; private set; }   //做成了全局静态实例，其他脚本通过InputManager.Instance直接访问
+    [SerializeField] private DialogueManager dialogueManager;    //对话管理器的引用，拖入DialogueManager脚本所在的对象
 
     private void Awake()    //确保只有一个实例存在
     {
@@ -38,7 +39,7 @@ public class InputManager : MonoBehaviour
         {
             if (ProcessManager.Instance.State == 1 || ProcessManager.Instance.State == 6)   //如果当前状态是1，按空格过对话情节
             {
-                DialogueManager.Instance.TriggerNextInput();
+                dialogueManager.TriggerNextInput();
             }
             else
             {

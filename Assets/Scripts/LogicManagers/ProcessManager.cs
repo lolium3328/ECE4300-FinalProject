@@ -11,6 +11,9 @@ public class ProcessManager : MonoBehaviour
     [SerializeField] private DialogueData Dialogue3;    //结算对话，中等分数结局
     [SerializeField] private DialogueData Dialogue4;    //结算对话，低分结局
 
+    [SerializeField] private DialogueManager dialogueManager;    //对话管理器的引用，拖入DialogueManager脚本所在的对象
+    [SerializeField] private CircleCountdown countdownTimer;    //倒计时UI组件的引用，拖入CircleCountdown脚本所在的对象
+
     private int state = 1;
     /*
     ProcessManager负责管理做松饼的整个流程，这里定义了state状态：
@@ -46,8 +49,9 @@ public class ProcessManager : MonoBehaviour
     private void Start()
     {
         state = 1;    //初始状态为1，等待开始
+
         // 启动完整对话序列
-        DialogueManager.Instance.StartDialogue(Dialogue1, 
+        dialogueManager.StartDialogue(Dialogue1, 
             () => { Debug.Log("对话完成！"); }
 );
     }
@@ -116,33 +120,38 @@ public class ProcessManager : MonoBehaviour
         {
             case 2:
                 //UI出示题目，倒数准备开始，放完自动进下一个状态
+
                 StartCoroutine(WaitForState2AndSwitch(8f));     //具体等待需要调整，这里假设是8秒
                 break;
             case 3:
+                countdownTimer.StartCountdown(5f);   //激活倒计时动画
                 StartCoroutine(WaitForState3AndSwitch(5f));    //放置松饼状态启动等待协程
                 break;
             case 4:
+                countdownTimer.StartCountdown(5f);   //激活倒计时动画
                 StartCoroutine(WaitForState4AndSwitch(5f));    //放果酱状态启动等待协程
                 break;
             case 5:
+                countdownTimer.StartCountdown(5f);   //激活倒计时动画
                 StartCoroutine(WaitForState5AndSwitch(5f));    //放topping状态启动等待协程
                 break;
             case 6:
+                countdownTimer.StartCountdown(0f);   //如果上一个状态提前结束，主动隐藏倒计时UI
                 if (score >= 80)   //根据分数调整结算对话，划分分数等级触发不一样的对话
                 {
-                    DialogueManager.Instance.StartDialogue(Dialogue2, 
+                    dialogueManager.StartDialogue(Dialogue2, 
                     () => { Debug.Log("结算对话完成！"); }
                     );
                 }
                 else if (score >= 50)
                 {
-                    DialogueManager.Instance.StartDialogue(Dialogue3, 
+                    dialogueManager.StartDialogue(Dialogue3, 
                     () => { Debug.Log("结算对话完成！"); }
                     );
                 }
                 else
                 {
-                    DialogueManager.Instance.StartDialogue(Dialogue4, 
+                    dialogueManager.StartDialogue(Dialogue4, 
                     () => { Debug.Log("结算对话完成！"); }
                     );
                 }
