@@ -86,8 +86,7 @@ public class DialogueManager : MonoBehaviour
 
     private void Start()
     {
-        // 初始化时隐藏对话框（等到有对话时再显示）
-        dialoguePanel.SetActive(false);
+
     }
 
     private void Update()
@@ -132,6 +131,14 @@ public class DialogueManager : MonoBehaviour
         
         // 清空队列，准备放入新的对话
         lineQueue.Clear();
+        
+        // 重置状态变量（重要！确保第二次调用时状态正确）
+        isTyping = false;
+        if (typingCoroutine != null)
+        {
+            StopCoroutine(typingCoroutine);
+            typingCoroutine = null;
+        }
 
         // 把数据中的所有对话行加入队列
         foreach (var line in data.lines)
@@ -171,6 +178,14 @@ public class DialogueManager : MonoBehaviour
         
         // 清空队列
         lineQueue.Clear();
+        
+        // 重置状态变量（重要！确保第二次调用时状态正确）
+        isTyping = false;
+        if (typingCoroutine != null)
+        {
+            StopCoroutine(typingCoroutine);
+            typingCoroutine = null;
+        }
         
         // 创建一个临时的对话行并加入队列
         lineQueue.Enqueue(new DialogueLine
@@ -349,9 +364,10 @@ public class DialogueManager : MonoBehaviour
 ║       "系统",                                                               ║
 ║       "欢迎来到我的店铺！",                                                 ║
 ║       null,  // 不显示头像                                                 ║
-// ║       () => { /* 对话完成后的逻辑 */                                   
-// ║ 【第四步】玩家交互：                                                        ║
-// ║   - 按 Space 键或鼠标左键                                                  ║
-// ║   - 如果还在打字：跳过动画，立刻显示全部                                   ║
-// ║   - 如果已显示完：显示下一句对话                                           ║
-// ║   - 对话全部完成：隐藏对话框，执行回调    ||
+║       () => { /* 对话完成后的逻辑 }                               
+║ 【第四步】玩家交互：                                                        ║
+║   - 按 Space 键或鼠标左键                                                  ║
+║   - 如果还在打字：跳过动画，立刻显示全部                                   ║
+║   - 如果已显示完：显示下一句对话                                           ║
+║   - 对话全部完成：隐藏对话框，执行回调    
+*/
