@@ -41,6 +41,10 @@ public class InputManager : MonoBehaviour
             {
                 dialogueManager.TriggerNextInput();
             }
+            else if (ProcessManager.Instance.State == 2)
+            {
+                
+            }
             else
             {
                 ProcessManager.Instance.SwitchToNextState();

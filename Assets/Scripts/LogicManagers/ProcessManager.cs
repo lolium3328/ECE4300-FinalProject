@@ -13,17 +13,18 @@ public class ProcessManager : MonoBehaviour
 
     [SerializeField] private DialogueManager dialogueManager;    //对话管理器的引用，拖入DialogueManager脚本所在的对象
     [SerializeField] private CircleCountdown countdownTimer;    //倒计时UI组件的引用，拖入CircleCountdown脚本所在的对象
+    [SerializeField] private UIManager uiManager;    //UI管理器的引用，拖入UIManager脚本所在的对象
 
     private int state = 1;
     /*
     ProcessManager负责管理做松饼的整个流程，这里定义了state状态：
-    1：情节/等待开始
+    1：对话情节/等待开始
     2：题目/准备
     3：放置松饼
     4：放果酱
     5：放topping
-    6：完成/结算
-    7：等待下一轮
+    6：完成/结算对话
+    7：结算分数/等待下一轮
     */
     private float timer = 0f;
     private int score = 60;    //分数，暂时没用到，后续可以根据制作的松饼质量来调整分数
@@ -32,6 +33,12 @@ public class ProcessManager : MonoBehaviour
     public int State    //其他脚本通过ProcessManager.Instance.State访问当前状态，只读
     {
         get { return state; }
+    }
+
+    public int Score    //其他脚本通过ProcessManager.Instance.Score访问当前分数，读写
+    {
+        get { return score; }
+        set { score = value; }
     }
 
     private void Awake()    //确保只有一个实例存在
@@ -93,11 +100,11 @@ public class ProcessManager : MonoBehaviour
                 Debug.Log("In state 5");
                 break;
             case 6:
-                //完成/结算
+                //完成/结算对话
                 Debug.Log("In state 6");
                 break;
             case 7:
-                //等待下一轮
+                //结算分数/等待下一轮
                 Debug.Log("In state 7");
                 break;
             default:
@@ -119,21 +126,21 @@ public class ProcessManager : MonoBehaviour
         switch (state)
         {
             case 2:
-                //UI出示题目，倒数准备开始，放完自动进下一个状态
-
-                StartCoroutine(WaitForState2AndSwitch(8f));     //具体等待需要调整，这里假设是8秒
+                uiManager.TriggerEndFinishStateUI();   //如果上一个状态是结算分数，先隐藏结算UI
+                uiManager.TriggerReadyStateUI();  //UI出示题目，放完自动进下一个状态
+                //动画放完后UIManager会调用ProcessManager.SwitchToNextState()来切换状态
                 break;
             case 3:
-                countdownTimer.StartCountdown(5f);   //激活倒计时动画
-                StartCoroutine(WaitForState3AndSwitch(5f));    //放置松饼状态启动等待协程
+                countdownTimer.StartCountdown(15f);   //激活倒计时动画
+                StartCoroutine(WaitAndSwitch(15f, 3));    //放置松饼状态启动等待协程
                 break;
             case 4:
-                countdownTimer.StartCountdown(5f);   //激活倒计时动画
-                StartCoroutine(WaitForState4AndSwitch(5f));    //放果酱状态启动等待协程
+                countdownTimer.StartCountdown(15f);   //激活倒计时动画
+                StartCoroutine(WaitAndSwitch(15f, 4));    //放果酱状态启动等待协程
                 break;
             case 5:
-                countdownTimer.StartCountdown(5f);   //激活倒计时动画
-                StartCoroutine(WaitForState5AndSwitch(5f));    //放topping状态启动等待协程
+                countdownTimer.StartCountdown(15f);   //激活倒计时动画
+                StartCoroutine(WaitAndSwitch(15f, 5));    //放topping状态启动等待协程
                 break;
             case 6:
                 countdownTimer.StartCountdown(0f);   //如果上一个状态提前结束，主动隐藏倒计时UI
@@ -156,43 +163,20 @@ public class ProcessManager : MonoBehaviour
                     );
                 }
                 break;
+            case 7:
+                //UI显示分数
+                uiManager.TriggerFinishStateUI();
+                //可以打断当前结算对话，直接进入下一轮
+                break;
         }
     }
 
-    private IEnumerator WaitForState2AndSwitch(float waitTime=8f)    //准备状态等待5秒的协程接口
+    private IEnumerator WaitAndSwitch(float waitTime, int currentState)    //放置松饼等待5秒的协程接口
     {
         yield return new WaitForSeconds(waitTime);
-        if (state == 2)     //如果在等待过程中状态已经切换了，就不执行切换了
-        {
-            SwitchToNextState();
-        }
-    }
-
-    private IEnumerator WaitForState3AndSwitch(float waitTime=5f)    //放置松饼等待5秒的协程接口
-    {
-        yield return new WaitForSeconds(waitTime);
-        if (state == 3)     //如果在等待过程中状态已经切换了，就不执行切换了
+        if (state == currentState)     //如果在等待过程中状态已经切换了，就不执行切换了
         {
             SwitchToNextState();
         }   
     }
-
-    private IEnumerator WaitForState4AndSwitch(float waitTime=5f)    //放果酱等待5秒的协程接口
-    {
-        yield return new WaitForSeconds(waitTime);
-        if (state == 4)     //如果在等待过程中状态已经切换了，就不执行切换了
-        {
-            SwitchToNextState();
-        }   
-    }
-
-    private IEnumerator WaitForState5AndSwitch(float waitTime=5f)    //放topping等待5秒的协程接口
-    {
-        yield return new WaitForSeconds(waitTime);
-        if (state == 5)     //如果在等待过程中状态已经切换了，就不执行切换了
-        {
-            SwitchToNextState();
-        }   
-    }
-
 }
