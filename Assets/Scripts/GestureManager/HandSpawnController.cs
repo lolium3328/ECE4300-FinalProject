@@ -31,6 +31,7 @@ public class HandSpawnController : MonoBehaviour
     public Material previewMaterial;
     public Transform spawnParent;
     public float spawnCooldown = 0.2f;
+    public Vector3 spawnEulerOffset = Vector3.zero;
     [Range(0f, 1f)]
     public float previewIdleAlpha = 0.5f;
     [Range(0f, 1f)]
@@ -169,7 +170,7 @@ public class HandSpawnController : MonoBehaviour
         _previewInstance = Instantiate(previewSource, movingPoint);
         _previewInstance.name = previewSource.name + "_Preview";
         _previewInstance.transform.localPosition = Vector3.zero;
-        _previewInstance.transform.localRotation = Quaternion.identity;
+        _previewInstance.transform.localRotation = Quaternion.Euler(spawnEulerOffset);
         _previewInstance.transform.localScale = previewSource.transform.localScale;
 
         foreach (Collider col in _previewInstance.GetComponentsInChildren<Collider>())
@@ -198,6 +199,44 @@ public class HandSpawnController : MonoBehaviour
         }
 
         SetPreviewAlpha(previewIdleAlpha);
+    }
+
+    public void SetPrefabToSpawn(GameObject newPrefab)
+    {
+        if (newPrefab == null)
+        {
+            Debug.LogWarning("[HandSpawnController] SetPrefabToSpawn received a null prefab.");
+            return;
+        }
+
+        GameObject previousSpawnPrefab = prefabToSpawn;
+        prefabToSpawn = newPrefab;
+
+        // Keep the preview in sync when it was following the old spawn prefab.
+        if (previewPrefab == null || previewPrefab == previousSpawnPrefab)
+        {
+            previewPrefab = newPrefab;
+        }
+
+        RefreshPreview();
+    }
+
+    private void RefreshPreview()
+    {
+        if (_previewAlphaRoutine != null)
+        {
+            StopCoroutine(_previewAlphaRoutine);
+            _previewAlphaRoutine = null;
+        }
+
+        if (_previewInstance != null)
+        {
+            Destroy(_previewInstance);
+            _previewInstance = null;
+        }
+
+        _previewRenderers = null;
+        EnsurePreviewInstance();
     }
 
     private void SetPreviewAlpha(float alpha)
@@ -301,25 +340,57 @@ public class HandSpawnController : MonoBehaviour
     /// </summary>
     public void SpawnAtCurrentPoint()
     {
+        Debug.Log("[HandSpawnController] SpawnAtCurrentPoint called.");
         if (!IsPlacementModuleActive())
         {
+             Debug.Log("[HandSpawnController] 当前不处于放置模式，已取消生成。");
             return;
         }
-
         if (prefabToSpawn == null || movingPoint == null)
         {
+            Debug.Log("[HandSpawnController] prefabToSpawn 或 movingPoint 为空，已取消生成。");
             return;
         }
-
         // 防连发冷却检查
         if (Time.time - _lastSpawnTime < spawnCooldown)
         {
+            Debug.Log("[HandSpawnController] 生成冷却中，已取消生成。");
+            return;
+        }
+        if (!PrefabIdentity.TryGetIdentity(prefabToSpawn.transform, out PrefabIdentity prefabIdentity))
+        {
+            Debug.LogWarning("[HandSpawnController] prefabToSpawn 缺少 PrefabIdentity，已取消生成。", prefabToSpawn);
+            return;
+        }
+
+        if (SpawnLimitManager.Instance != null && !SpawnLimitManager.Instance.CanSpawn(prefabIdentity))
+        {
+            Debug.Log($"[HandSpawnController] {prefabIdentity.Type} 已达到最大生成数量。");
             return;
         }
 
         _lastSpawnTime = Time.time;
         Transform actualSpawnParent = spawnParent == movingPoint ? null : spawnParent;
-        Instantiate(prefabToSpawn, movingPoint.position, Quaternion.identity, actualSpawnParent);
+        Quaternion spawnRotation = Quaternion.Euler(spawnEulerOffset);
+       
+        GameObject spawnedObject = Instantiate(prefabToSpawn, movingPoint.position, spawnRotation, actualSpawnParent);
+         Debug.Log("[HandSpawnController] ");
+        if (spawnedObject.GetComponent<SpawnedObjectLife>() == null)
+        {
+            spawnedObject.AddComponent<SpawnedObjectLife>();
+        }
+
+        if (SpawnLimitManager.Instance != null)
+        {
+            bool registered = SpawnLimitManager.Instance.RegisterSpawn(spawnedObject);
+            if (!registered)
+            {
+                Debug.LogWarning("[HandSpawnController] 生成后的对象登记失败，已销毁该实例。", spawnedObject);
+                Destroy(spawnedObject);
+                return;
+            }
+        }
+
         PlayPreviewHighlight();
     }
 

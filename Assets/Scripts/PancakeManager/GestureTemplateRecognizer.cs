@@ -13,8 +13,8 @@ public class GestureTemplateRecognizer : MonoBehaviour
     public bool enableClearInput = true;
 
     [Header("Input Keys")]
-    public KeyCode recognizeKey = KeyCode.Space;
-    public KeyCode saveTemplateKey = KeyCode.R;
+    public KeyCode recognizeKey = KeyCode.R;
+    public KeyCode saveTemplateKey = KeyCode.Space;
     public KeyCode clearKey = KeyCode.C;
 
     private void Update()
@@ -31,6 +31,7 @@ public class GestureTemplateRecognizer : MonoBehaviour
 
         if (enableRecognizeInput && Input.GetKeyDown(recognizeKey))
         {
+            Debug.Log("Recognize input detected.");
             gestureManager.Recognize();
         }
 
