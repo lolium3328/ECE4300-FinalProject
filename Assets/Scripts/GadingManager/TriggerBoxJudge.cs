@@ -1,15 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
-
-[Serializable]
-public class JudgeRequirementEntry
-{
-    public PrefabType prefabType;
-    [Min(0)] public int requiredCount = 1;
-}
-
 public class TriggerBoxJudge : MonoBehaviour
 {
     [Header("Trigger Box")]
@@ -17,9 +8,8 @@ public class TriggerBoxJudge : MonoBehaviour
     [SerializeField] private LayerMask judgeLayerMask = ~0;
     [SerializeField] private QueryTriggerInteraction queryTriggerInteraction = QueryTriggerInteraction.Collide;
 
-    [Header("Recipe Requirements")]
-    [SerializeField] private List<JudgeRequirementEntry> requirements = new List<JudgeRequirementEntry>();
-    [SerializeField] private bool rejectUnexpectedTypes = true;
+    [Header("Runtime Recipe")]
+    [SerializeField] [TextArea(3, 10)] private string runtimeRecipeSummary;
 
     [Header("Scoring")]
     [SerializeField] [Range(0f, 100f)] private float recipeScoreMax = 70f;
@@ -45,6 +35,13 @@ public class TriggerBoxJudge : MonoBehaviour
     public float LastTotalScore => lastTotalScore;
     public Vector3 LastAnchorPoint => lastAnchorPoint;
     public string LastJudgeSummary => lastJudgeSummary;
+    public bool HasRuntimeRecipe => runtimeRecipe != null;
+
+    private RuntimeJudgeRecipe runtimeRecipe;
+    private static readonly IReadOnlyList<JudgeRequirementEntry> EmptyRequirements = new List<JudgeRequirementEntry>();
+    private IReadOnlyList<JudgeRequirementEntry> ActiveRequirements => runtimeRecipe != null ? runtimeRecipe.Requirements : EmptyRequirements;
+    private bool ShouldRejectUnexpectedTypes => runtimeRecipe != null && runtimeRecipe.RejectUnexpectedTypes;
+    private string ActiveRecipeSourceLabel => runtimeRecipe != null ? GetRuntimeRecipeLabel(runtimeRecipe) : "No Runtime Recipe";
 
     /// <summary>
     /// 当脚本在 Inspector 中被重置时，自动尝试获取当前物体上的 BoxCollider。
@@ -54,6 +51,10 @@ public class TriggerBoxJudge : MonoBehaviour
         triggerBox = GetComponent<BoxCollider>();
     }
 
+    /// <summary>
+    /// 在编辑器中修改属性时触发。
+    /// 如果勾选了 judgeWhenChecked，则执行一次判定（仅在运行模式下有效）。
+    /// </summary>
     private void OnValidate()
     {
         if (!judgeWhenChecked)
@@ -72,6 +73,18 @@ public class TriggerBoxJudge : MonoBehaviour
         JudgeNow();
     }
 
+    public void SetRuntimeRecipe(RuntimeJudgeRecipe recipe)
+    {
+        runtimeRecipe = recipe != null ? recipe.Clone() : null;
+        runtimeRecipeSummary = runtimeRecipe != null ? runtimeRecipe.BuildSummary() : string.Empty;
+    }
+
+    public void ClearRuntimeRecipe()
+    {
+        runtimeRecipe = null;
+        runtimeRecipeSummary = string.Empty;
+    }
+
     /// <summary>
     /// 核心判定函数：执行当前的评分逻辑。
     /// 包含：扫描物体、构建数量表、查找锚点物体、评估配方准确度、计算同心度得分，并生成总结。
@@ -79,6 +92,16 @@ public class TriggerBoxJudge : MonoBehaviour
     [ContextMenu("Judge Now")]
     public void JudgeNow()
     {
+        if (runtimeRecipe == null)
+        {
+            lastJudgeSummary = "[TriggerBoxJudge] No runtime recipe assigned.";
+            if (logJudgeResult)
+            {
+                Debug.LogWarning(lastJudgeSummary, this);
+            }
+            return;
+        }
+
         if (!TryGetTriggerBox(out BoxCollider targetBox))
         {
             lastJudgeSummary = "[TriggerBoxJudge] Missing BoxCollider.";
@@ -160,8 +183,10 @@ public class TriggerBoxJudge : MonoBehaviour
     }
 
     /// <summary>
-    /// 根据扫描到的快照统计各类型的物体数量。
+    /// 统计区域内物体的类型及数量。
     /// </summary>
+    /// <param name="scannedObjects">扫描到的物体快照字典。</param>
+    /// <returns>以 PrefabType 为键、物体数量为值的字典。</returns>
     private Dictionary<PrefabType, int> BuildCountMap(Dictionary<int, JudgeObjectSnapshot> scannedObjects)
     {
         Dictionary<PrefabType, int> counts = new Dictionary<PrefabType, int>();
@@ -200,18 +225,23 @@ public class TriggerBoxJudge : MonoBehaviour
     }
 
     /// <summary>
-    /// 评估实际数量是否符合配方要求。
-    /// 会计算差值，并根据 rejectUnexpectedTypes 决定是否扣除多余物体的分数。
+    /// 评估配方准确度。
+    /// 计算每个必需物体的差值，并可选地惩罚多余的非配方物体。
     /// </summary>
+    /// <param name="actualCounts">实际检测到的物体数量。</param>
+    /// <param name="totalDifference">输出：总差异数量。</param>
+    /// <param name="totalRequiredCount">输出：配方要求的总数量。</param>
+    /// <returns>配方是否完美匹配。</returns>
     private bool EvaluateRecipe(Dictionary<PrefabType, int> actualCounts, out int totalDifference, out int totalRequiredCount)
     {
         totalDifference = 0;
         totalRequiredCount = 0;
         HashSet<PrefabType> requiredTypes = new HashSet<PrefabType>();
+        IReadOnlyList<JudgeRequirementEntry> activeRequirements = ActiveRequirements;
 
-        for (int i = 0; i < requirements.Count; i++)
+        for (int i = 0; i < activeRequirements.Count; i++)
         {
-            JudgeRequirementEntry requirement = requirements[i];
+            JudgeRequirementEntry requirement = activeRequirements[i];
             if (requirement == null)
             {
                 continue;
@@ -224,7 +254,7 @@ public class TriggerBoxJudge : MonoBehaviour
             totalDifference += Mathf.Abs(actualCount - requirement.requiredCount);
         }
 
-        if (rejectUnexpectedTypes)
+        if (ShouldRejectUnexpectedTypes)
         {
             foreach (KeyValuePair<PrefabType, int> pair in actualCounts)
             {
@@ -279,8 +309,11 @@ public class TriggerBoxJudge : MonoBehaviour
     }
 
     /// <summary>
-    ///辅助函数：根据水平距离返回 0 到 1 之间的对齐置信度。 
+    /// 根据水平距离得分。
+    /// 在 perfectRadius 内得满分，超过 zeroScoreRadius 得 0 分，中间按线性插值衰减。
     /// </summary>
+    /// <param name="distance">计算出的水平距离。</param>
+    /// <returns>0 到 1 之间的得分比例。</returns>
     private float CalculateDistanceScore01(float distance)
     {
         if (distance <= perfectRadius)
@@ -297,8 +330,12 @@ public class TriggerBoxJudge : MonoBehaviour
     }
 
     /// <summary>
-    /// 获取两个三维点在 XZ 平面上的水平距离（忽略高度 Y）。
+    /// 获取水平中心到垂直线的距离。
+    /// 计算两个点在 XZ 平面上的 Euclidean 距离，忽略 Y 轴（垂直方向）。
     /// </summary>
+    /// <param name="point">待计算的点。</param>
+    /// <param name="lineOrigin">垂直线的基准点（通常是锚点物体的中心）。</param>
+    /// <returns>水平面上的距离值。</returns>
     private static float GetHorizontalDistanceToVerticalLine(Vector3 point, Vector3 lineOrigin)
     {
         Vector2 pointXZ = new Vector2(point.x, point.z);
@@ -316,8 +353,10 @@ public class TriggerBoxJudge : MonoBehaviour
     }
 
     /// <summary>
-    /// 计算一个物体及其所有子层级中所有碰撞体的合并包围盒。
+    /// 获取包含所有子物体的合并包围盒（Bounds）。
     /// </summary>
+    /// <param name="identity">目标物体的 PrefabIdentity。</param>
+    /// <returns>合并后的 AABB 包围盒。</returns>
     private static Bounds CalculateBounds(PrefabIdentity identity)
     {
         Collider[] colliders = identity.GetComponentsInChildren<Collider>(true);
@@ -344,6 +383,26 @@ public class TriggerBoxJudge : MonoBehaviour
         return new Vector3(Mathf.Abs(scaledSize.x), Mathf.Abs(scaledSize.y), Mathf.Abs(scaledSize.z)) * 0.5f;
     }
 
+    private static string GetRuntimeRecipeLabel(RuntimeJudgeRecipe recipe)
+    {
+        if (recipe == null)
+        {
+            return "Runtime Recipe";
+        }
+
+        if (!string.IsNullOrWhiteSpace(recipe.DisplayName))
+        {
+            return $"Runtime Recipe ({recipe.DisplayName})";
+        }
+
+        if (!string.IsNullOrWhiteSpace(recipe.RecipeId))
+        {
+            return $"Runtime Recipe ({recipe.RecipeId})";
+        }
+
+        return "Runtime Recipe";
+    }
+
     /// <summary>
     /// 构建并生成最终的可读总结文本，用于调试或 UI 显示。
     /// </summary>
@@ -355,7 +414,9 @@ public class TriggerBoxJudge : MonoBehaviour
         int totalRequiredCount)
     {
         StringBuilder builder = new StringBuilder();
+        IReadOnlyList<JudgeRequirementEntry> activeRequirements = ActiveRequirements;
         builder.AppendLine("[TriggerBoxJudge] Judge completed.");
+        builder.AppendLine($"Recipe source: {ActiveRecipeSourceLabel}");
         builder.AppendLine($"Objects in box: {scannedObjects.Count}");
         builder.AppendLine($"Recipe matched: {lastRecipeMatched}");
         builder.AppendLine($"Recipe score: {lastRecipeScore:F2}/{recipeScoreMax:F2}");
@@ -373,15 +434,15 @@ public class TriggerBoxJudge : MonoBehaviour
         }
 
         builder.AppendLine("Requirements:");
-        if (requirements.Count == 0)
+        if (activeRequirements.Count == 0)
         {
             builder.AppendLine("- none");
         }
         else
         {
-            for (int i = 0; i < requirements.Count; i++)
+            for (int i = 0; i < activeRequirements.Count; i++)
             {
-                JudgeRequirementEntry requirement = requirements[i];
+                JudgeRequirementEntry requirement = activeRequirements[i];
                 if (requirement == null)
                 {
                     continue;
