@@ -253,7 +253,7 @@ GameObject:
   - component: {fileID: 100325888}
   - component: {fileID: 100325889}
   m_Layer: 0
-  m_Name: Logic
+  m_Name: GestureManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -271,6 +271,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8f3c3e68354d9a4e9d7626674d1447b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  handSpawnController: {fileID: 786086273}
   state: 3
 --- !u!4 &100325887
 Transform:
@@ -3823,7 +3824,8 @@ MonoBehaviour:
   inputMaxX: 0.63
   minX: -0.2
   maxX: 0.66
-  followSpeed: 15
+  followSpeed: 14.969027
+  followSpeedKeyboard: 0.5
   autoExpandInputRange: 1
   previewPrefab: {fileID: 4152398340915908989, guid: 1ad41f765d8986a46934f26eb3be2388,
     type: 3}

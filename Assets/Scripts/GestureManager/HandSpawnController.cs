@@ -23,6 +23,8 @@ public class HandSpawnController : MonoBehaviour
     public float maxX = 1f;
     [Range(0f, 30f)]
     public float followSpeed = 15f;
+    [SerializeField] private float followSpeedKeyboard = 0.5f;   // 键盘调整的跟随速度
+    private float waitTimer = 0f;
     public bool autoExpandInputRange = true;
 
     [Header("Spawn")]
@@ -39,6 +41,8 @@ public class HandSpawnController : MonoBehaviour
     public float previewHighlightDuration = 2f;
 
     private float _currentX;
+    private float _currentXApply;
+    private float _currentXDelta = 0f;
     private float _lastSpawnTime = -999f;
     private GameObject _previewInstance;
     private Renderer[] _previewRenderers;
@@ -66,6 +70,43 @@ public class HandSpawnController : MonoBehaviour
         _currentX = startPosition.x;
         ApplyPointPosition(_currentX);
         EnsurePreviewInstance();
+    }
+
+    private void Update()
+    {
+        _currentXApply = _currentX + _currentXDelta;
+        ApplyPointPosition(_currentXApply);
+
+        //加入键盘的手动调整
+        if (Input.GetKey(KeyCode.D))
+        {
+            waitTimer = 0f; // 重置计时器，保持在有输入状态
+            _currentXDelta += followSpeedKeyboard * Time.deltaTime;
+            ApplyPointPosition(_currentXApply);
+        }
+        if (Input.GetKey(KeyCode.A))
+        {
+            waitTimer = 0f; // 重置计时器，保持在有输入状态
+            _currentXDelta -= followSpeedKeyboard * Time.deltaTime;
+            ApplyPointPosition(_currentXApply);
+        }
+        if (Input.GetKeyUp(KeyCode.S))
+        {
+            waitTimer = 0f; // 重置计时器，准备在放开后逐渐恢复
+        }
+        {
+            waitTimer += Time.deltaTime;
+            // 如果2秒内没有按键输入，逐渐恢复到默认位置
+            if (waitTimer < 2f)
+            {
+                return;
+            }
+            if (Mathf.Abs(_currentXDelta) > 0.01f)
+            {
+                _currentXDelta = Mathf.Lerp(_currentXDelta, 0f, 1f * Time.deltaTime);
+                ApplyPointPosition(_currentXApply);
+            }
+        }
     }
 
     /// <summary>
@@ -119,7 +160,6 @@ public class HandSpawnController : MonoBehaviour
         // 将手部物理坐标映射到场景坐标
         float targetX = NormalizeAndMapX(rawX);
         _currentX = Mathf.Lerp(_currentX, targetX, followSpeed * Time.deltaTime);
-        ApplyPointPosition(_currentX);
     }
 
     /// <summary>
@@ -146,10 +186,10 @@ public class HandSpawnController : MonoBehaviour
     /// </summary>
     private void ApplyPointPosition(float x)
     {
-        if (movingPoint == null)
-        {
-            return;
-        }
+        // if (movingPoint == null)
+        // {
+        //     return;
+        // }
 
         movingPoint.position = new Vector3(x, fixedY, fixedZ);
     }
@@ -419,6 +459,12 @@ public class HandSpawnController : MonoBehaviour
         }
 
         Frame frame = leapProvider.CurrentFrame;
+        if (frame == null)
+        {
+            Debug.LogWarning("[HandSpawnController] Leap Motion 未连接，无法校准输入范围。");
+            return;
+        }
+
         Hand rightHand = frame.GetHand(Chirality.Right);
         if (rightHand == null)
         {
