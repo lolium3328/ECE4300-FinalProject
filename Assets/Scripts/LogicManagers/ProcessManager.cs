@@ -75,42 +75,35 @@ public class ProcessManager : MonoBehaviour
             timer = 0f;    //其他状态不计时，重置计时器
         }
 
-        //根据state的7种值执行不同流程逻辑
-        switch (state)
-        {
-            case 1:
-                //情节/等待开始
-                Debug.Log("In state 1");
-                break;
-            case 2:
-                //UI出示题目，倒数准备开始
-                //过一段时间自动进入下一个状态，开始制作松饼，已写在协程里了
-                Debug.Log("In state 2");
-                break;
-            case 3:
-                //5秒钟放置松饼，超过5秒自动切换到下一状态,已写在协程里了
-                Debug.Log("In state 3");
-                break;
-            case 4:
-                //5秒钟放果酱，超过5秒自动切换到下一状态,已写在协程里了
-                Debug.Log("In state 4");
-                break;
-            case 5:
-                //5秒钟放topping，超过5秒自动切换到下一状态,已写在协程里了
-                Debug.Log("In state 5");
-                break;
-            case 6:
-                //完成/结算对话
-                Debug.Log("In state 6");
-                break;
-            case 7:
-                //结算分数/等待下一轮
-                Debug.Log("In state 7");
-                break;
-            default:
-                state = 2;
-                break;
-        }
+        // //根据state的7种值执行不同流程逻辑
+        // switch (state)
+        // {
+        //     case 1:
+        //         //情节/等待开始
+        //         break;
+        //     case 2:
+        //         //UI出示题目，倒数准备开始
+        //         //过一段时间自动进入下一个状态，开始制作松饼，已写在协程里了
+        //         break;
+        //     case 3:
+        //         //5秒钟放置松饼，超过5秒自动切换到下一状态,已写在协程里了
+        //         break;
+        //     case 4:
+        //         //5秒钟放果酱，超过5秒自动切换到下一状态,已写在协程里了
+        //         break;
+        //     case 5:
+        //         //5秒钟放topping，超过5秒自动切换到下一状态,已写在协程里了
+        //         break;
+        //     case 6:
+        //         //完成/结算对话
+        //         break;
+        //     case 7:
+        //         //结算分数/等待下一轮
+        //         break;
+        //     default:
+        //         state = 2;
+        //         break;
+        // }
         
         
     }
@@ -125,24 +118,39 @@ public class ProcessManager : MonoBehaviour
         }
         switch (state)
         {
+            case 1:
+                //这个状态不应该被切换函数切换到，保持在Start里
+                Debug.LogWarning("状态1不应该被切换函数切换到！");
+                break;
             case 2:
+                Debug.Log("switch to state 2");
                 uiManager.TriggerEndFinishStateUI();   //如果上一个状态是结算分数，先隐藏结算UI
                 uiManager.TriggerReadyStateUI();  //UI出示题目，放完自动进下一个状态
                 //动画放完后UIManager会调用ProcessManager.SwitchToNextState()来切换状态
                 break;
             case 3:
+                Debug.Log("switch to state 3");
                 countdownTimer.StartCountdown(15f);   //激活倒计时动画
                 StartCoroutine(WaitAndSwitch(15f, 3));    //放置松饼状态启动等待协程
+                uiManager.TriggerPlacePancakeUI();   //激活放置松饼的UI提示
                 break;
             case 4:
+                Debug.Log("switch to state 4");
                 countdownTimer.StartCountdown(15f);   //激活倒计时动画
                 StartCoroutine(WaitAndSwitch(15f, 4));    //放果酱状态启动等待协程
+                uiManager.TriggerEndPlacePancakeUI();  //放置松饼的UI提示关闭
+                uiManager.TriggerPlaceJamUI();   //激活放置果酱的UI提示
                 break;
             case 5:
+                Debug.Log("switch to state 5");
                 countdownTimer.StartCountdown(15f);   //激活倒计时动画
                 StartCoroutine(WaitAndSwitch(15f, 5));    //放topping状态启动等待协程
+                uiManager.TriggerEndPlaceJamUI();   //放置果酱的UI提示关闭
+                uiManager.TriggerPlaceToppingUI();    //激活放置topping
                 break;
             case 6:
+                uiManager.TriggerEndPlaceToppingUI();    //激活放置topping
+                Debug.Log("switch to state 6");
                 countdownTimer.StartCountdown(0f);   //如果上一个状态提前结束，主动隐藏倒计时UI
                 if (score >= 80)   //根据分数调整结算对话，划分分数等级触发不一样的对话
                 {
@@ -167,6 +175,7 @@ public class ProcessManager : MonoBehaviour
                 //UI显示分数
                 uiManager.TriggerFinishStateUI();
                 //可以打断当前结算对话，直接进入下一轮
+                Debug.Log("switch to state 7");
                 break;
         }
     }

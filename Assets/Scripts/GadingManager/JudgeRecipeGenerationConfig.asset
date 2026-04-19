@@ -24,7 +24,7 @@ MonoBehaviour:
     maxCount: 4
     weight: 0
   - prefabType: 1
-    required: 0
+    required: 1
     minCount: 1
     maxCount: 4
     weight: 0

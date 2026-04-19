@@ -13,6 +13,9 @@ public class UIManager : MonoBehaviour
 
     [SerializeField] private GameObject finishUI;
     [SerializeField] private TextMeshProUGUI score_text;
+    [SerializeField] private GameObject placePancakeUI;
+    [SerializeField] private GameObject placeJamUI;
+    [SerializeField] private GameObject placeToppingUI;
 
     private void Start()
     {
@@ -69,5 +72,35 @@ public class UIManager : MonoBehaviour
     {
         yield return new WaitForSeconds(1f);
         score_text.gameObject.SetActive(true);
+    }
+
+    public void TriggerPlacePancakeUI()
+    {
+        placePancakeUI.SetActive(true);
+    }
+
+    public void TriggerPlaceJamUI()
+    {
+        placeJamUI.SetActive(true);
+    }
+
+    public void TriggerPlaceToppingUI()
+    {
+        placeToppingUI.SetActive(true);
+    }
+
+    public void TriggerEndPlacePancakeUI()
+    {
+        placePancakeUI.SetActive(false);
+    }
+
+    public void TriggerEndPlaceJamUI()
+    {
+        placeJamUI.SetActive(false);
+    }
+
+    public void TriggerEndPlaceToppingUI()
+    {
+        placeToppingUI.SetActive(false);
     }
 }
