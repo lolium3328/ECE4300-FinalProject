@@ -344,6 +344,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8f3c3e68354d9a4e9d7626674d1447b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  handSpawnController: {fileID: 786086273}
+  gestureSpawnSelector: {fileID: 0}
   state: 3
 --- !u!4 &100325887
 Transform:
@@ -4321,8 +4323,6 @@ MonoBehaviour:
 '
   recipeScoreMax: 70
   concentricityScoreMax: 30
-  perfectRadius: 0.02
-  zeroScoreRadius: 0.25
   logJudgeResult: 1
   judgeWhenChecked: 0
   lastJudgeSummary: '[TriggerBoxJudge] JudgeWhenChecked only works reliably in Play
@@ -4767,6 +4767,11 @@ PrefabInstance:
       propertyPath: leapProvider
       value: 
       objectReference: {fileID: 117308849}
+    - target: {fileID: 4837384819041421681, guid: a498a8f7907e53e40a3ab150d03269cd,
+        type: 3}
+      propertyPath: gestureSpawnSelector
+      value: 
+      objectReference: {fileID: 1687558789}
     - target: {fileID: 8028015496925664508, guid: a498a8f7907e53e40a3ab150d03269cd,
         type: 3}
       propertyPath: m_Name

@@ -20,7 +20,7 @@ MonoBehaviour:
   rules:
   - prefabType: 0
     required: 1
-    minCount: 1
+    minCount: 2
     maxCount: 4
     weight: 0
   - prefabType: 1

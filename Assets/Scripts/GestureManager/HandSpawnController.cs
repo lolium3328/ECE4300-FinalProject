@@ -48,6 +48,8 @@ public class HandSpawnController : MonoBehaviour
     private Renderer[] _previewRenderers;
     private Coroutine _previewAlphaRoutine;
 
+    [SerializeField] GestureSpawnSelector gestureSpawnSelector;
+
     /// <summary>
     /// 当脚本在 Inspector 中被重置或添加时调用，默认将当前物体设为移动参考点。
     /// </summary>
@@ -78,19 +80,19 @@ public class HandSpawnController : MonoBehaviour
         ApplyPointPosition(_currentXApply);
 
         //加入键盘的手动调整
-        if (Input.GetKey(KeyCode.D))
+        if (Input.GetKey(KeyCode.D) && TestForGest.Instance.IsPlacementMode())
         {
             waitTimer = 0f; // 重置计时器，保持在有输入状态
             _currentXDelta += followSpeedKeyboard * Time.deltaTime;
             ApplyPointPosition(_currentXApply);
         }
-        if (Input.GetKey(KeyCode.A))
+        if (Input.GetKey(KeyCode.A) && TestForGest.Instance.IsPlacementMode())
         {
             waitTimer = 0f; // 重置计时器，保持在有输入状态
             _currentXDelta -= followSpeedKeyboard * Time.deltaTime;
             ApplyPointPosition(_currentXApply);
         }
-        if (Input.GetKeyUp(KeyCode.S))
+        if (Input.GetKeyUp(KeyCode.S) && TestForGest.Instance.IsPlacementMode())
         {
             waitTimer = 0f; // 重置计时器，准备在放开后逐渐恢复
         }
@@ -106,6 +108,12 @@ public class HandSpawnController : MonoBehaviour
                 _currentXDelta = Mathf.Lerp(_currentXDelta, 0f, 1f * Time.deltaTime);
                 ApplyPointPosition(_currentXApply);
             }
+        }
+        //选择水果时，加入键盘控制
+        if (Input.GetKeyDown(KeyCode.W) && TestForGest.Instance.IsGestureMode())
+        {
+            Debug.Log("[HandSpawnController] W key pressed - applying Strawberry_01 gesture.");
+            gestureSpawnSelector.ApplyRecognizedLabel("1");
         }
     }
 
@@ -241,7 +249,7 @@ public class HandSpawnController : MonoBehaviour
         SetPreviewAlpha(previewIdleAlpha);
     }
 
-    public void SetPrefabToSpawn(GameObject newPrefab)
+    public void SetPrefabToSpawn(GameObject newPrefab)  // 供外部调用以更改当前生成物体的预设,例如 GestureSpawnSelector 根据识别结果切换预设
     {
         if (newPrefab == null)
         {

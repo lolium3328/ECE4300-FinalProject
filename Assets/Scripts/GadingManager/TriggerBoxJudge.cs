@@ -14,8 +14,8 @@ public class TriggerBoxJudge : MonoBehaviour
     [Header("Scoring")]
     [SerializeField] [Range(0f, 100f)] private float recipeScoreMax = 70f;
     [SerializeField] [Range(0f, 100f)] private float concentricityScoreMax = 30f;
-    [SerializeField] [Min(0f)] private float perfectRadius = 0.02f;
-    [SerializeField] [Min(0.001f)] private float zeroScoreRadius = 0.25f;
+    private float perfectRadius = 0.01f;    // 在这个半径范围内被认为是完美对齐，得满分
+    private float zeroScoreRadius = 0.06f;   // 超过这个半径被认为完全不对齐，得 0 分，中间部分线性衰减
 
     [Header("Debug Output")]
     [SerializeField] private bool logJudgeResult = true;
@@ -289,7 +289,7 @@ public class TriggerBoxJudge : MonoBehaviour
 
     /// <summary>
     /// 计算同心度分部分（叠放对齐程度）。
-    /// 将所有物体的水平中心与锚点物体的垂直中心线进行距离计算。
+    /// 将所有物体（除锚点外）的水平中心与锚点物体的垂直中心线进行距离计算。
     /// </summary>
     private float CalculateConcentricityScore(Dictionary<int, JudgeObjectSnapshot> scannedObjects, JudgeObjectSnapshot anchorSnapshot)
     {
@@ -299,13 +299,28 @@ public class TriggerBoxJudge : MonoBehaviour
         }
 
         float totalScore01 = 0f;
+        int countExcludingAnchor = 0;
+        
         foreach (JudgeObjectSnapshot snapshot in scannedObjects.Values)
         {
+            // 跳过锚点物体本身
+            if (snapshot.InstanceId == anchorSnapshot.InstanceId)
+            {
+                continue;
+            }
+
             float distance = GetHorizontalDistanceToVerticalLine(snapshot.Center, anchorSnapshot.Center);
             totalScore01 += CalculateDistanceScore01(distance);
+            countExcludingAnchor++;
         }
 
-        return (totalScore01 / scannedObjects.Count) * concentricityScoreMax;
+        // 如果只有锚点物体，默认给一半分，因为本来也不允许只有锚点物体，但是物体数量不对已经有惩罚，所以给一半分比较合理
+        if (countExcludingAnchor == 0)
+        {
+            return concentricityScoreMax * 0.5f;
+        }
+
+        return (totalScore01 / countExcludingAnchor) * concentricityScoreMax;
     }
 
     /// <summary>
