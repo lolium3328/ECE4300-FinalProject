@@ -23,6 +23,8 @@ public class HandSpawnController : MonoBehaviour
     public float maxX = 1f;
     [Range(0f, 30f)]
     public float followSpeed = 15f;
+    [SerializeField] private float followSpeedKeyboard = 0.5f;   // 键盘调整的跟随速度
+    private float waitTimer = 0f;
     public bool autoExpandInputRange = true;
 
     [Header("Spawn")]
@@ -31,6 +33,7 @@ public class HandSpawnController : MonoBehaviour
     public Material previewMaterial;
     public Transform spawnParent;
     public float spawnCooldown = 0.2f;
+    public Vector3 spawnEulerOffset = Vector3.zero;
     [Range(0f, 1f)]
     public float previewIdleAlpha = 0.5f;
     [Range(0f, 1f)]
@@ -38,10 +41,14 @@ public class HandSpawnController : MonoBehaviour
     public float previewHighlightDuration = 2f;
 
     private float _currentX;
+    private float _currentXApply;
+    private float _currentXDelta = 0f;
     private float _lastSpawnTime = -999f;
     private GameObject _previewInstance;
     private Renderer[] _previewRenderers;
     private Coroutine _previewAlphaRoutine;
+
+    [SerializeField] GestureSpawnSelector gestureSpawnSelector;
 
     /// <summary>
     /// 当脚本在 Inspector 中被重置或添加时调用，默认将当前物体设为移动参考点。
@@ -65,6 +72,49 @@ public class HandSpawnController : MonoBehaviour
         _currentX = startPosition.x;
         ApplyPointPosition(_currentX);
         EnsurePreviewInstance();
+    }
+
+    private void Update()
+    {
+        _currentXApply = _currentX + _currentXDelta;
+        ApplyPointPosition(_currentXApply);
+
+        //加入键盘的手动调整
+        if (Input.GetKey(KeyCode.D) && TestForGest.Instance.IsPlacementMode())
+        {
+            waitTimer = 0f; // 重置计时器，保持在有输入状态
+            _currentXDelta += followSpeedKeyboard * Time.deltaTime;
+            ApplyPointPosition(_currentXApply);
+        }
+        if (Input.GetKey(KeyCode.A) && TestForGest.Instance.IsPlacementMode())
+        {
+            waitTimer = 0f; // 重置计时器，保持在有输入状态
+            _currentXDelta -= followSpeedKeyboard * Time.deltaTime;
+            ApplyPointPosition(_currentXApply);
+        }
+        if (Input.GetKeyUp(KeyCode.S) && TestForGest.Instance.IsPlacementMode())
+        {
+            waitTimer = 0f; // 重置计时器，准备在放开后逐渐恢复
+        }
+        {
+            waitTimer += Time.deltaTime;
+            // 如果2秒内没有按键输入，逐渐恢复到默认位置
+            if (waitTimer < 2f)
+            {
+                return;
+            }
+            if (Mathf.Abs(_currentXDelta) > 0.01f)
+            {
+                _currentXDelta = Mathf.Lerp(_currentXDelta, 0f, 1f * Time.deltaTime);
+                ApplyPointPosition(_currentXApply);
+            }
+        }
+        //选择水果时，加入键盘控制
+        if (Input.GetKeyDown(KeyCode.W) && TestForGest.Instance.IsGestureMode())
+        {
+            Debug.Log("[HandSpawnController] W key pressed - applying Strawberry_01 gesture.");
+            gestureSpawnSelector.ApplyRecognizedLabel("1");
+        }
     }
 
     /// <summary>
@@ -118,7 +168,6 @@ public class HandSpawnController : MonoBehaviour
         // 将手部物理坐标映射到场景坐标
         float targetX = NormalizeAndMapX(rawX);
         _currentX = Mathf.Lerp(_currentX, targetX, followSpeed * Time.deltaTime);
-        ApplyPointPosition(_currentX);
     }
 
     /// <summary>
@@ -145,10 +194,10 @@ public class HandSpawnController : MonoBehaviour
     /// </summary>
     private void ApplyPointPosition(float x)
     {
-        if (movingPoint == null)
-        {
-            return;
-        }
+        // if (movingPoint == null)
+        // {
+        //     return;
+        // }
 
         movingPoint.position = new Vector3(x, fixedY, fixedZ);
     }
@@ -169,7 +218,7 @@ public class HandSpawnController : MonoBehaviour
         _previewInstance = Instantiate(previewSource, movingPoint);
         _previewInstance.name = previewSource.name + "_Preview";
         _previewInstance.transform.localPosition = Vector3.zero;
-        _previewInstance.transform.localRotation = Quaternion.identity;
+        _previewInstance.transform.localRotation = Quaternion.Euler(spawnEulerOffset);
         _previewInstance.transform.localScale = previewSource.transform.localScale;
 
         foreach (Collider col in _previewInstance.GetComponentsInChildren<Collider>())
@@ -198,6 +247,44 @@ public class HandSpawnController : MonoBehaviour
         }
 
         SetPreviewAlpha(previewIdleAlpha);
+    }
+
+    public void SetPrefabToSpawn(GameObject newPrefab)  // 供外部调用以更改当前生成物体的预设,例如 GestureSpawnSelector 根据识别结果切换预设
+    {
+        if (newPrefab == null)
+        {
+            Debug.LogWarning("[HandSpawnController] SetPrefabToSpawn received a null prefab.");
+            return;
+        }
+
+        GameObject previousSpawnPrefab = prefabToSpawn;
+        prefabToSpawn = newPrefab;
+
+        // Keep the preview in sync when it was following the old spawn prefab.
+        if (previewPrefab == null || previewPrefab == previousSpawnPrefab)
+        {
+            previewPrefab = newPrefab;
+        }
+
+        RefreshPreview();
+    }
+
+    private void RefreshPreview()
+    {
+        if (_previewAlphaRoutine != null)
+        {
+            StopCoroutine(_previewAlphaRoutine);
+            _previewAlphaRoutine = null;
+        }
+
+        if (_previewInstance != null)
+        {
+            Destroy(_previewInstance);
+            _previewInstance = null;
+        }
+
+        _previewRenderers = null;
+        EnsurePreviewInstance();
     }
 
     private void SetPreviewAlpha(float alpha)
@@ -301,25 +388,57 @@ public class HandSpawnController : MonoBehaviour
     /// </summary>
     public void SpawnAtCurrentPoint()
     {
+        Debug.Log("[HandSpawnController] SpawnAtCurrentPoint called.");
         if (!IsPlacementModuleActive())
         {
+             Debug.Log("[HandSpawnController] 当前不处于放置模式，已取消生成。");
             return;
         }
-
         if (prefabToSpawn == null || movingPoint == null)
         {
+            Debug.Log("[HandSpawnController] prefabToSpawn 或 movingPoint 为空，已取消生成。");
             return;
         }
-
         // 防连发冷却检查
         if (Time.time - _lastSpawnTime < spawnCooldown)
         {
+            Debug.Log("[HandSpawnController] 生成冷却中，已取消生成。");
+            return;
+        }
+        if (!PrefabIdentity.TryGetIdentity(prefabToSpawn.transform, out PrefabIdentity prefabIdentity))
+        {
+            Debug.LogWarning("[HandSpawnController] prefabToSpawn 缺少 PrefabIdentity，已取消生成。", prefabToSpawn);
+            return;
+        }
+
+        if (SpawnLimitManager.Instance != null && !SpawnLimitManager.Instance.CanSpawn(prefabIdentity))
+        {
+            Debug.Log($"[HandSpawnController] {prefabIdentity.Type} 已达到最大生成数量。");
             return;
         }
 
         _lastSpawnTime = Time.time;
         Transform actualSpawnParent = spawnParent == movingPoint ? null : spawnParent;
-        Instantiate(prefabToSpawn, movingPoint.position, Quaternion.identity, actualSpawnParent);
+        Quaternion spawnRotation = Quaternion.Euler(spawnEulerOffset);
+       
+        GameObject spawnedObject = Instantiate(prefabToSpawn, movingPoint.position, spawnRotation, actualSpawnParent);
+         Debug.Log("[HandSpawnController] ");
+        if (spawnedObject.GetComponent<SpawnedObjectLife>() == null)
+        {
+            spawnedObject.AddComponent<SpawnedObjectLife>();
+        }
+
+        if (SpawnLimitManager.Instance != null)
+        {
+            bool registered = SpawnLimitManager.Instance.RegisterSpawn(spawnedObject);
+            if (!registered)
+            {
+                Debug.LogWarning("[HandSpawnController] 生成后的对象登记失败，已销毁该实例。", spawnedObject);
+                Destroy(spawnedObject);
+                return;
+            }
+        }
+
         PlayPreviewHighlight();
     }
 
@@ -348,6 +467,12 @@ public class HandSpawnController : MonoBehaviour
         }
 
         Frame frame = leapProvider.CurrentFrame;
+        if (frame == null)
+        {
+            Debug.LogWarning("[HandSpawnController] Leap Motion 未连接，无法校准输入范围。");
+            return;
+        }
+
         Hand rightHand = frame.GetHand(Chirality.Right);
         if (rightHand == null)
         {

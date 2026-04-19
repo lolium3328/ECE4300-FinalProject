@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Reflection;
 
 public class TestForGest : MonoBehaviour
 {
     public static TestForGest Instance { get; private set; }
+    [SerializeField] HandSpawnController handSpawnController;
+    [SerializeField] GestureSpawnSelector gestureSpawnSelector;
 
     // 1: 默认, 3: 放置(Spawn), 4: 手势/写(Gesture/Writing)
     public int state = 1;
@@ -20,6 +21,11 @@ public class TestForGest : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    private void Start()
+    {
+
     }
 
     private void Update()
@@ -37,6 +43,12 @@ public class TestForGest : MonoBehaviour
             state = 4;
             Debug.Log("[TestForGest] Switched to Writing/Gesture Mode (State 4)");
         }
+
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            handSpawnController.SpawnAtCurrentPoint();
+        }
+
     }
 
     public bool IsPlacementMode()

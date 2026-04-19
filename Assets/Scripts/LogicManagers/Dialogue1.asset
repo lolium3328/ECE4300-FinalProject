@@ -18,7 +18,7 @@ MonoBehaviour:
     content: Irohaaa... My stomach is rumbling. I'm so hungry.
   - speakerName: Kaguya
     avatar: {fileID: 21300000, guid: ca85ad29208a0e346b547ca4d8a6e937, type: 3}
-    content: I'm craving your special, fluffy pancakes!
+    content: "I'm craving your special, fluffy Souffl\xE9 pancakes!"
   - speakerName: Iroha
     avatar: {fileID: 21300000, guid: 681f82db4902e9a4fa3fe39f7f30c840, type: 3}
     content: My pancakes? But you know my cooking is a bit... hit-or-miss.
