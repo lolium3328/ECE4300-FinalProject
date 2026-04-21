@@ -74,25 +74,25 @@ public class HandSpawnController : MonoBehaviour
         EnsurePreviewInstance();
     }
 
-    private void Update()
+    private void Update()   //处理键盘手动调整放置位置
     {
         _currentXApply = _currentX + _currentXDelta;
         ApplyPointPosition(_currentXApply);
 
         //加入键盘的手动调整
-        if (Input.GetKey(KeyCode.D) && TestForGest.Instance.IsPlacementMode())
+        if (Input.GetKey(KeyCode.D) && ProcessManager.Instance.IsPlacementMode())
         {
             waitTimer = 0f; // 重置计时器，保持在有输入状态
             _currentXDelta += followSpeedKeyboard * Time.deltaTime;
             ApplyPointPosition(_currentXApply);
         }
-        if (Input.GetKey(KeyCode.A) && TestForGest.Instance.IsPlacementMode())
+        if (Input.GetKey(KeyCode.A) && ProcessManager.Instance.IsPlacementMode())
         {
             waitTimer = 0f; // 重置计时器，保持在有输入状态
             _currentXDelta -= followSpeedKeyboard * Time.deltaTime;
             ApplyPointPosition(_currentXApply);
         }
-        if (Input.GetKeyUp(KeyCode.S) && TestForGest.Instance.IsPlacementMode())
+        if (Input.GetKeyUp(KeyCode.S) && ProcessManager.Instance.IsPlacementMode())
         {
             waitTimer = 0f; // 重置计时器，准备在放开后逐渐恢复
         }
@@ -110,10 +110,14 @@ public class HandSpawnController : MonoBehaviour
             }
         }
         //选择水果时，加入键盘控制
-        if (Input.GetKeyDown(KeyCode.W) && TestForGest.Instance.IsGestureMode())
+        if (Input.GetKeyDown(KeyCode.W) && ProcessManager.Instance.IsGestureMode())
         {
-            Debug.Log("[HandSpawnController] W key pressed - applying Strawberry_01 gesture.");
-            gestureSpawnSelector.ApplyRecognizedLabel("1");
+            gestureSpawnSelector.ApplyRecognizedLabel("1");     //切到草莓预设
+        }
+
+        if (Input.GetKeyDown(KeyCode.S) && ProcessManager.Instance.IsGestureMode())
+        {
+            gestureSpawnSelector.ApplyRecognizedLabel("0");     //切回默认松饼预设
         }
     }
 
@@ -484,14 +488,11 @@ public class HandSpawnController : MonoBehaviour
         inputMaxX = rawX;
     }
 
-    /// <summary>
-    /// 核心判断：询问 TestForGest 单例当前是否应该开启“放置功能”。
-    /// </summary>
     private bool IsPlacementModuleActive()
     {
-        if (TestForGest.Instance != null)
+        if (ProcessManager.Instance != null)
         {
-            return TestForGest.Instance.IsPlacementMode();
+            return ProcessManager.Instance.IsPlacementMode();
         }
 
         return true;

@@ -14,7 +14,7 @@ public class GestureTemplateRecognizer : MonoBehaviour
 
     [Header("Input Keys")]
     public KeyCode recognizeKey = KeyCode.R;
-    public KeyCode saveTemplateKey = KeyCode.Space;
+    public KeyCode saveTemplateKey = KeyCode.X;
     public KeyCode clearKey = KeyCode.C;
 
     private void Update()

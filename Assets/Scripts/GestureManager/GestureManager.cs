@@ -164,9 +164,9 @@ public class GestureManager : MonoBehaviour
 
     private bool IsGestureModuleActive()
     {
-        if (TestForGest.Instance != null)
+        if (ProcessManager.Instance != null)
         {
-            return TestForGest.Instance.IsGestureMode();
+            return ProcessManager.Instance.IsGestureMode();
         }
 
         return true;

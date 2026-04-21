@@ -21,8 +21,8 @@ public class GestureSpawnSelector : MonoBehaviour
     [Header("Options")]
     public bool ignoreNoneLabel = true;
     public bool useFallbackWhenNoMatch = false;
-    public GameObject fallbackPrefab;
-    public bool logSelection = true;
+    public GameObject fallbackPrefab;       //可选的预设，当没有找到匹配的标签时使用
+    public bool logSelection = true;       //是否在控制台输出每次应用的标签和预设信息，便于调试和验证识别结果
 
     [Header("Debug")]
     [SerializeField] private string lastAppliedLabel = "None";
@@ -106,7 +106,7 @@ public class GestureSpawnSelector : MonoBehaviour
 
             if (logSelection)
             {
-                Debug.Log("[GestureSpawnSelector] Ignored label 'None'.");
+                Debug.Log("[GestureSpawnSelector] Applied label 'None'.");
             }
 
             return false;
@@ -114,8 +114,12 @@ public class GestureSpawnSelector : MonoBehaviour
 
         if (TryGetMappedPrefab(normalizedLabel, out GameObject mappedPrefab))
         {
-            handSpawnController.SetPrefabToSpawn(mappedPrefab);
+            handSpawnController.SetPrefabToSpawn(mappedPrefab);     //将识别到的标签对应的预设设置为当前要放置的预设
             lastAppliedPrefab = mappedPrefab;
+            if (ProcessManager.Instance != null && !ProcessManager.Instance.IsProhibitedMode())   //如果流程管理器存在，并且不是禁用模式，切换到放置模式
+            {
+                ProcessManager.Instance.SetPlacementMode(1);    //选择结束后自动切换到放置模式，方便
+            }
 
             if (logSelection)
             {
@@ -125,10 +129,14 @@ public class GestureSpawnSelector : MonoBehaviour
             return true;
         }
 
-        if (useFallbackWhenNoMatch && fallbackPrefab != null)
+        if (useFallbackWhenNoMatch && fallbackPrefab != null)      //如果没有找到匹配的标签，并且启用了使用预设作为后备选项，则应用后备预设
         {
             handSpawnController.SetPrefabToSpawn(fallbackPrefab);
             lastAppliedPrefab = fallbackPrefab;
+            if (ProcessManager.Instance != null && !ProcessManager.Instance.IsProhibitedMode())   //如果流程管理器存在，并且不是禁用模式，切换到放置模式
+            {
+                ProcessManager.Instance.SetPlacementMode(1);    //选择结束后自动切换到放置模式，方便
+            }
 
             if (logSelection)
             {

@@ -14,6 +14,8 @@ public class ProcessManager : MonoBehaviour
     [SerializeField] private DialogueManager dialogueManager;    //对话管理器的引用，拖入DialogueManager脚本所在的对象
     [SerializeField] private CircleCountdown countdownTimer;    //倒计时UI组件的引用，拖入CircleCountdown脚本所在的对象
     [SerializeField] private UIManager uiManager;    //UI管理器的引用，拖入UIManager脚本所在的对象
+    [SerializeField] private RecipeRoundController recipeRoundController;    //题目管理器的引用，拖入RecipeRoundController脚本所在的对象
+    [SerializeField] private GestureSpawnSelector gestureSpawnSelector;    //手势放置控制器的引用，拖入HandSpawnController脚本所在的对象
 
     private int state = 1;
     /*
@@ -28,6 +30,8 @@ public class ProcessManager : MonoBehaviour
     */
     private float timer = 0f;
     private int score = 60;    //分数，暂时没用到，后续可以根据制作的松饼质量来调整分数
+    private int placeMode = 0;
+    // 0: 禁用动作, 1: 放置(Spawn), 2: 手势/写(Gesture/Writing)
 
 
     public int State    //其他脚本通过ProcessManager.Instance.State访问当前状态，只读
@@ -56,6 +60,8 @@ public class ProcessManager : MonoBehaviour
     private void Start()
     {
         state = 1;    //初始状态为1，等待开始
+        placeMode = 0;    //初始放置模式为0，禁用动作
+        gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
 
         // 启动完整对话序列
         dialogueManager.StartDialogue(Dialogue1, 
@@ -74,37 +80,6 @@ public class ProcessManager : MonoBehaviour
         {
             timer = 0f;    //其他状态不计时，重置计时器
         }
-
-        // //根据state的7种值执行不同流程逻辑
-        // switch (state)
-        // {
-        //     case 1:
-        //         //情节/等待开始
-        //         break;
-        //     case 2:
-        //         //UI出示题目，倒数准备开始
-        //         //过一段时间自动进入下一个状态，开始制作松饼，已写在协程里了
-        //         break;
-        //     case 3:
-        //         //5秒钟放置松饼，超过5秒自动切换到下一状态,已写在协程里了
-        //         break;
-        //     case 4:
-        //         //5秒钟放果酱，超过5秒自动切换到下一状态,已写在协程里了
-        //         break;
-        //     case 5:
-        //         //5秒钟放topping，超过5秒自动切换到下一状态,已写在协程里了
-        //         break;
-        //     case 6:
-        //         //完成/结算对话
-        //         break;
-        //     case 7:
-        //         //结算分数/等待下一轮
-        //         break;
-        //     default:
-        //         state = 2;
-        //         break;
-        // }
-        
         
     }
 
@@ -120,28 +95,37 @@ public class ProcessManager : MonoBehaviour
         {
             case 1:
                 //这个状态不应该被切换函数切换到，保持在Start里
+                gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体          
+                placeMode = 0;    //切回默认禁用状态
                 Debug.LogWarning("状态1不应该被切换函数切换到！");
                 break;
             case 2:
                 Debug.Log("switch to state 2");
+                gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
+                placeMode = 0;    //切回默认禁用状态
+                recipeRoundController.GenerateApplyAndJudge();   //生成题目并应用到Judge
                 uiManager.TriggerEndFinishStateUI();   //如果上一个状态是结算分数，先隐藏结算UI
                 uiManager.TriggerReadyStateUI();  //UI出示题目，放完自动进下一个状态
                 //动画放完后UIManager会调用ProcessManager.SwitchToNextState()来切换状态
                 break;
             case 3:
                 Debug.Log("switch to state 3");
+                placeMode = 1;    //切换到放置状态
+                gestureSpawnSelector.ApplyRecognizedLabel("0");     //预设为松饼
                 countdownTimer.StartCountdown(15f);   //激活倒计时动画
                 StartCoroutine(WaitAndSwitch(15f, 3));    //放置松饼状态启动等待协程
                 uiManager.TriggerPlacePancakeUI();   //激活放置松饼的UI提示
                 break;
             case 4:
                 Debug.Log("switch to state 4");
+                //放果酱，暂时空着先
                 countdownTimer.StartCountdown(15f);   //激活倒计时动画
                 StartCoroutine(WaitAndSwitch(15f, 4));    //放果酱状态启动等待协程
                 uiManager.TriggerEndPlacePancakeUI();  //放置松饼的UI提示关闭
                 uiManager.TriggerPlaceJamUI();   //激活放置果酱的UI提示
                 break;
             case 5:
+                gestureSpawnSelector.ApplyRecognizedLabel("1");     //预设为草莓，设置完自动切回放置模式
                 Debug.Log("switch to state 5");
                 countdownTimer.StartCountdown(15f);   //激活倒计时动画
                 StartCoroutine(WaitAndSwitch(15f, 5));    //放topping状态启动等待协程
@@ -149,7 +133,9 @@ public class ProcessManager : MonoBehaviour
                 uiManager.TriggerPlaceToppingUI();    //激活放置topping
                 break;
             case 6:
-                uiManager.TriggerEndPlaceToppingUI();    //激活放置topping
+                gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
+                placeMode = 0;    //切回默认禁用状态
+                uiManager.TriggerEndPlaceToppingUI();    //激活结束放置topping
                 Debug.Log("switch to state 6");
                 countdownTimer.StartCountdown(0f);   //如果上一个状态提前结束，主动隐藏倒计时UI
                 if (score >= 80)   //根据分数调整结算对话，划分分数等级触发不一样的对话
@@ -172,6 +158,8 @@ public class ProcessManager : MonoBehaviour
                 }
                 break;
             case 7:
+                gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
+                placeMode = 0;    //切回默认禁用状态
                 //UI显示分数
                 uiManager.TriggerFinishStateUI();
                 //可以打断当前结算对话，直接进入下一轮
@@ -180,12 +168,32 @@ public class ProcessManager : MonoBehaviour
         }
     }
 
-    private IEnumerator WaitAndSwitch(float waitTime, int currentState)    //放置松饼等待5秒的协程接口
+    private IEnumerator WaitAndSwitch(float waitTime, int currentState)    //等待t秒的协程接口
     {
         yield return new WaitForSeconds(waitTime);
         if (state == currentState)     //如果在等待过程中状态已经切换了，就不执行切换了
         {
             SwitchToNextState();
         }   
+    }
+
+    public bool IsProhibitedMode()
+    {
+        return placeMode == 0;
+    }
+
+    public bool IsPlacementMode()
+    {
+        return placeMode == 1;
+    }
+
+    public bool IsGestureMode()
+    {
+        return placeMode == 2;
+    }
+
+    public void SetPlacementMode(int mode)
+    {
+        placeMode = mode;
     }
 }
