@@ -115,6 +115,12 @@ public class HandSpawnController : MonoBehaviour
             Debug.Log("[HandSpawnController] W key pressed - applying Strawberry_01 gesture.");
             gestureSpawnSelector.ApplyRecognizedLabel("1");
         }
+        //选择果酱时，按E
+        if (Input.GetKeyDown(KeyCode.E) && TestForGest.Instance.IsGestureMode())
+        {
+            Debug.Log("[HandSpawnController] E key pressed - applying Syrup gesture.");
+            gestureSpawnSelector.ApplyRecognizedLabel("2");
+        }
     }
 
     /// <summary>
@@ -423,6 +429,14 @@ public class HandSpawnController : MonoBehaviour
        
         GameObject spawnedObject = Instantiate(prefabToSpawn, movingPoint.position, spawnRotation, actualSpawnParent);
          Debug.Log("[HandSpawnController] ");
+        PrefabIdentity id;
+        if (PrefabIdentity.TryGetIdentity(spawnedObject.transform, out id))
+        {
+            if (id.Type == PrefabType.Syrup)
+            {
+                MakeSyrupStick(spawnedObject);
+            }
+        }
         if (spawnedObject.GetComponent<SpawnedObjectLife>() == null)
         {
             spawnedObject.AddComponent<SpawnedObjectLife>();
@@ -442,6 +456,14 @@ public class HandSpawnController : MonoBehaviour
         PlayPreviewHighlight();
     }
 
+
+
+    void MakeSyrupStick(GameObject syrup)
+    {
+        Rigidbody rb = syrup.GetComponent<Rigidbody>();
+
+        syrup.AddComponent<SyrupStickHelper>().Init(rb);
+    }
     /// <summary>
     /// 将当前的锁定位置 Y 和 Z 设置为参考点目前的实时坐标。
     /// </summary>
