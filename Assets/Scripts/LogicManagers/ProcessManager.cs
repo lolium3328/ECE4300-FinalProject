@@ -125,7 +125,10 @@ public class ProcessManager : MonoBehaviour
                 uiManager.TriggerPlaceJamUI();   //激活放置果酱的UI提示
                 break;
             case 5:
-                gestureSpawnSelector.ApplyRecognizedLabel("1");     //预设为草莓，设置完自动切回放置模式
+                gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
+                placeMode = 2;    //切换到手势/写字模式，等待玩家输入手势信号来选择topping
+                uiManager.ChooseToppingHint();   //放置topping的UI提示
+                //放置topping的ui在玩家输入手势信号后结束
                 Debug.Log("switch to state 5");
                 countdownTimer.StartCountdown(15f);   //激活倒计时动画
                 StartCoroutine(WaitAndSwitch(15f, 5));    //放topping状态启动等待协程
@@ -133,6 +136,7 @@ public class ProcessManager : MonoBehaviour
                 uiManager.TriggerPlaceToppingUI();    //激活放置topping
                 break;
             case 6:
+                uiManager.EndChooseToppingHint();   //结束放置topping的UI提示,如果还没结束
                 gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
                 placeMode = 0;    //切回默认禁用状态
                 uiManager.TriggerEndPlaceToppingUI();    //激活结束放置topping
@@ -195,5 +199,14 @@ public class ProcessManager : MonoBehaviour
     public void SetPlacementMode(int mode)
     {
         placeMode = mode;
+    }
+
+    public void SetPrefabToSpawnDone()      //收到信号预设完成时执行
+    {
+        if (!IsProhibitedMode())
+        {
+            placeMode = 1;    //从placemode 2切换到放置模式1，方便
+        }
+        uiManager.EndChooseToppingHint();   //结束放置topping的UI提示,如果还没结束
     }
 }

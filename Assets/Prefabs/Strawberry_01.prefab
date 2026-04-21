@@ -90,6 +90,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 3557212731930048640}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 52f5641cc931e2e4199698b37551cc25,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -4821367027956576245}
     - targetCorrespondingSourceObject: {fileID: -8767972392891149908, guid: 52f5641cc931e2e4199698b37551cc25,
         type: 3}
       insertIndex: -1
@@ -137,6 +141,18 @@ MonoBehaviour:
   HandToIgnoreCollisions: 2
   _disableAllHandCollisions: 1
   _disableCollisionOnChildren: 1
+--- !u!114 &-4821367027956576245
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1167908640217431826}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fea97827c1bc7f3408a74b9dbf2b5fda, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1920135402640069615 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -8767972392891149908, guid: 52f5641cc931e2e4199698b37551cc25,

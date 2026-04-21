@@ -116,9 +116,9 @@ public class GestureSpawnSelector : MonoBehaviour
         {
             handSpawnController.SetPrefabToSpawn(mappedPrefab);     //将识别到的标签对应的预设设置为当前要放置的预设
             lastAppliedPrefab = mappedPrefab;
-            if (ProcessManager.Instance != null && !ProcessManager.Instance.IsProhibitedMode())   //如果流程管理器存在，并且不是禁用模式，切换到放置模式
+            if (ProcessManager.Instance != null)   
             {
-                ProcessManager.Instance.SetPlacementMode(1);    //选择结束后自动切换到放置模式，方便
+                ProcessManager.Instance.SetPrefabToSpawnDone();     //发信号预设完成
             }
 
             if (logSelection)
@@ -133,9 +133,9 @@ public class GestureSpawnSelector : MonoBehaviour
         {
             handSpawnController.SetPrefabToSpawn(fallbackPrefab);
             lastAppliedPrefab = fallbackPrefab;
-            if (ProcessManager.Instance != null && !ProcessManager.Instance.IsProhibitedMode())   //如果流程管理器存在，并且不是禁用模式，切换到放置模式
+            if (ProcessManager.Instance != null)
             {
-                ProcessManager.Instance.SetPlacementMode(1);    //选择结束后自动切换到放置模式，方便
+                ProcessManager.Instance.SetPrefabToSpawnDone();     //发信号预设完成
             }
 
             if (logSelection)

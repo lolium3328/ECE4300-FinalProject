@@ -16,10 +16,22 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject placePancakeUI;
     [SerializeField] private GameObject placeJamUI;
     [SerializeField] private GameObject placeToppingUI;
+    [SerializeField] private GameObject chooseToppingHintUI;
 
     private void Start()
     {
+        readyUI.SetActive(false);
+        recipeImage.gameObject.SetActive(false);
+        ready_text.gameObject.SetActive(false);
+        cook_text.gameObject.SetActive(false);
 
+        finishUI.SetActive(false);
+        score_text.gameObject.SetActive(false);
+
+        placePancakeUI.SetActive(false);
+        placeJamUI.SetActive(false);
+        placeToppingUI.SetActive(false);
+        chooseToppingHintUI.SetActive(false);
     }
 
     private void Update()
@@ -102,5 +114,16 @@ public class UIManager : MonoBehaviour
     public void TriggerEndPlaceToppingUI()
     {
         placeToppingUI.SetActive(false);
+    }
+
+    public void ChooseToppingHint()
+    {
+        chooseToppingHintUI.SetActive(true);
+        Debug.Log("choose topping hint triggered");
+    }
+
+    public void EndChooseToppingHint()
+    {
+        chooseToppingHintUI.SetActive(false);
     }
 }
