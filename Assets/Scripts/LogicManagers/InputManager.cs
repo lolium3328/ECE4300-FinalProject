@@ -80,7 +80,18 @@ public class InputManager : MonoBehaviour
             handSpawnController.SpawnAtCurrentPoint();
         }
 
-        //键盘手动调整放置位置，以及预设放置物体，在HandSpawnController里实现
+        //选择水果时，加入键盘控制
+        if (Input.GetKeyDown(KeyCode.W) && ProcessManager.Instance.IsGestureMode())
+        {
+            gestureSpawnSelector.ApplyRecognizedLabel("1");     //切到草莓预设
+        }
+
+        // if (Input.GetKeyDown(KeyCode.S) && ProcessManager.Instance.IsGestureMode())
+        // {
+        //     gestureSpawnSelector.ApplyRecognizedLabel("0");     //切回默认松饼预设
+        // }
+
+        //键盘手动调整放置位置在HandSpawnController里实现
     }
 
     //处理手势识别

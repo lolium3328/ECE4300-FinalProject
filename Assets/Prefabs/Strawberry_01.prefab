@@ -78,6 +78,36 @@ PrefabInstance:
       propertyPath: m_Name
       value: Strawberry_01
       objectReference: {fileID: 0}
+    - target: {fileID: 9182739215224939709, guid: 52f5641cc931e2e4199698b37551cc25,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.3038673
+      objectReference: {fileID: 0}
+    - target: {fileID: 9182739215224939709, guid: 52f5641cc931e2e4199698b37551cc25,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.07696105
+      objectReference: {fileID: 0}
+    - target: {fileID: 9182739215224939709, guid: 52f5641cc931e2e4199698b37551cc25,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.024635429
+      objectReference: {fileID: 0}
+    - target: {fileID: 9182739215224939709, guid: 52f5641cc931e2e4199698b37551cc25,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.94928116
+      objectReference: {fileID: 0}
+    - target: {fileID: 9182739215224939709, guid: 52f5641cc931e2e4199698b37551cc25,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 9.27
+      objectReference: {fileID: 0}
+    - target: {fileID: 9182739215224939709, guid: 52f5641cc931e2e4199698b37551cc25,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: -144.5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -189,9 +219,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1920135402640069615}
   serializedVersion: 4
-  m_Mass: 0.2
-  m_Drag: 0
-  m_AngularDrag: 0.05
+  m_Mass: 1
+  m_Drag: 3
+  m_AngularDrag: 1
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}

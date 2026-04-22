@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Rendering;
 using UnityEngine;
 
 public class ProcessManager : MonoBehaviour
@@ -16,6 +17,7 @@ public class ProcessManager : MonoBehaviour
     [SerializeField] private UIManager uiManager;    //UI管理器的引用，拖入UIManager脚本所在的对象
     [SerializeField] private RecipeRoundController recipeRoundController;    //题目管理器的引用，拖入RecipeRoundController脚本所在的对象
     [SerializeField] private GestureSpawnSelector gestureSpawnSelector;    //手势放置控制器的引用，拖入HandSpawnController脚本所在的对象
+    [SerializeField] private TriggerBoxJudge triggerBoxJudge;    //触发判定的引用，拖入TriggerBoxJudge脚本所在的对象
 
     private int state = 1;
     /*
@@ -141,6 +143,9 @@ public class ProcessManager : MonoBehaviour
                 placeMode = 0;    //切回默认禁用状态
                 uiManager.TriggerEndPlaceToppingUI();    //激活结束放置topping
                 Debug.Log("switch to state 6");
+
+                triggerBoxJudge.JudgeNow();   //触发判定
+                score = (int)triggerBoxJudge.LastTotalScore;    //获取分数,并转成int类型
                 countdownTimer.StartCountdown(0f);   //如果上一个状态提前结束，主动隐藏倒计时UI
                 if (score >= 80)   //根据分数调整结算对话，划分分数等级触发不一样的对话
                 {

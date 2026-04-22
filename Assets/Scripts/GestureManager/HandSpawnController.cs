@@ -109,16 +109,7 @@ public class HandSpawnController : MonoBehaviour
                 ApplyPointPosition(_currentXApply);
             }
         }
-        //选择水果时，加入键盘控制
-        if (Input.GetKeyDown(KeyCode.W) && ProcessManager.Instance.IsGestureMode())
-        {
-            gestureSpawnSelector.ApplyRecognizedLabel("1");     //切到草莓预设
-        }
-
-        if (Input.GetKeyDown(KeyCode.S) && ProcessManager.Instance.IsGestureMode())
-        {
-            gestureSpawnSelector.ApplyRecognizedLabel("0");     //切回默认松饼预设
-        }
+        
     }
 
     /// <summary>
