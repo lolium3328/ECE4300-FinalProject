@@ -268,9 +268,10 @@ MonoBehaviour:
   faceSkinnedRenderer: {fileID: 0}
   faceMeshRenderer: {fileID: 1312241602}
   faceMaterialIndex: 0
-  defaultAnimation: Armature|Angry
+  defaultAnimation: Happy
   defaultExpression: Default
   animationWhitelist:
+  - Happy
   - Idle
   - Walk
   - Run
