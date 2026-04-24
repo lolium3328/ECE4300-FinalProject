@@ -73,7 +73,7 @@ public class GestureTemplateRecognizer : MonoBehaviour
 
     public void ClearDrawing()
     {
-        if (gestureManager == null || !enableClearInput)
+        if (gestureManager == null)
         {
             return;
         }

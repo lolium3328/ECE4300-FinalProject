@@ -58,6 +58,7 @@ public class CreamSurfacePlacementTester : MonoBehaviour
         Transform cursor = placementCursor != null ? placementCursor : transform;
         cursorPosition = cursor.position;
         UpdatePlacementCursor();
+        ApplyCursorVisibility();
     }
 
     private void OnEnable()
@@ -191,6 +192,12 @@ public class CreamSurfacePlacementTester : MonoBehaviour
     public void SetInputEnabled(bool enabled)
     {
         inputEnabled = enabled;
+        if (enabled)
+        {
+            UpdatePlacementCursor();
+        }
+
+        ApplyCursorVisibility();
     }
 
     public void EnableInput()
@@ -309,6 +316,7 @@ public class CreamSurfacePlacementTester : MonoBehaviour
 
         if (placementCursor == null || !hasSurfaceHit)
         {
+            ApplyCursorVisibility();
             return;
         }
 
@@ -318,6 +326,18 @@ public class CreamSurfacePlacementTester : MonoBehaviour
         {
             placementCursor.rotation = Quaternion.FromToRotation(Vector3.up, lastHit.normal);
         }
+
+        ApplyCursorVisibility();
+    }
+
+    private void ApplyCursorVisibility()
+    {
+        if (placementCursor == null)
+        {
+            return;
+        }
+
+        placementCursor.gameObject.SetActive(inputEnabled && hasSurfaceHit);
     }
 
     private bool SpawnCream()

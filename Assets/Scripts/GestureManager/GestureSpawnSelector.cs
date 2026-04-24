@@ -136,6 +136,7 @@ public class GestureSpawnSelector : MonoBehaviour
         {
             handSpawnController.SetPrefabToSpawn(mappedPrefab);     //将识别到的标签对应的预设设置为当前要放置的预设
             lastAppliedPrefab = mappedPrefab;
+            ClearGestureDrawing();
             if (ProcessManager.Instance != null)   
             {
                 ProcessManager.Instance.SetPrefabToSpawnDone();     //发信号预设完成
@@ -153,6 +154,7 @@ public class GestureSpawnSelector : MonoBehaviour
         {
             handSpawnController.SetPrefabToSpawn(fallbackPrefab);
             lastAppliedPrefab = fallbackPrefab;
+            ClearGestureDrawing();
             if (ProcessManager.Instance != null)
             {
                 ProcessManager.Instance.SetPrefabToSpawnDone();     //发信号预设完成
@@ -169,6 +171,14 @@ public class GestureSpawnSelector : MonoBehaviour
         lastAppliedPrefab = null;
         Debug.LogWarning($"[GestureSpawnSelector] No prefab mapping found for label '{normalizedLabel}'.");
         return false;
+    }
+
+    private void ClearGestureDrawing()
+    {
+        if (recognizer != null)
+        {
+            recognizer.ClearDrawing();
+        }
     }
 
     private bool TryGetMappedPrefab(string label, out GameObject prefab)
