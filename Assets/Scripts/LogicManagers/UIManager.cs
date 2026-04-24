@@ -1,129 +1,209 @@
 using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
+using UnityEngine;
+using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    [Header("Ready State")]
     [SerializeField] private GameObject readyUI;
-    [SerializeField] private Image recipeImage;
+    [SerializeField] private ReadyRecipeUI readyRecipeUI;
+
+    [FormerlySerializedAs("recipeImage")]
+    [SerializeField] private Image legacyRecipeImage; // Transitional reference used only to hide the old static recipe image.
+
     [SerializeField] private TextMeshProUGUI ready_text;
     [SerializeField] private TextMeshProUGUI cook_text;
 
+    [Header("Finish State")]
     [SerializeField] private GameObject finishUI;
     [SerializeField] private TextMeshProUGUI score_text;
+
+    [Header("Placement Hints")]
     [SerializeField] private GameObject placePancakeUI;
     [SerializeField] private GameObject placeJamUI;
     [SerializeField] private GameObject placeToppingUI;
     [SerializeField] private GameObject chooseToppingHintUI;
 
+    private Coroutine readyCoroutine;
+    private Coroutine finishCoroutine;
+
     private void Start()
     {
-        readyUI.SetActive(false);
-        recipeImage.gameObject.SetActive(false);
-        ready_text.gameObject.SetActive(false);
-        cook_text.gameObject.SetActive(false);
+        SetActiveIfAssigned(readyUI, false);
+        HideLegacyRecipeImage();
+        HideReadyRecipeUI();
+        SetActiveIfAssigned(ready_text, false);
+        SetActiveIfAssigned(cook_text, false);
 
-        finishUI.SetActive(false);
-        score_text.gameObject.SetActive(false);
+        SetActiveIfAssigned(finishUI, false);
+        SetActiveIfAssigned(score_text, false);
 
-        placePancakeUI.SetActive(false);
-        placeJamUI.SetActive(false);
-        placeToppingUI.SetActive(false);
-        chooseToppingHintUI.SetActive(false);
+        SetActiveIfAssigned(placePancakeUI, false);
+        SetActiveIfAssigned(placeJamUI, false);
+        SetActiveIfAssigned(placeToppingUI, false);
+        SetActiveIfAssigned(chooseToppingHintUI, false);
     }
 
-    private void Update()
+    public void TriggerReadyStateUI(RuntimeJudgeRecipe recipe)
     {
-        
+        if (readyCoroutine != null)
+        {
+            StopCoroutine(readyCoroutine);
+        }
+
+        SetActiveIfAssigned(readyUI, true);
+        HideLegacyRecipeImage();
+        HideReadyRecipeUI();
+        SetActiveIfAssigned(ready_text, false);
+        SetActiveIfAssigned(cook_text, false);
+
+        readyCoroutine = StartCoroutine(ReadyStateUI(recipe));
     }
 
-    public void TriggerReadyStateUI()
-    {
-        readyUI.SetActive(true);
-        recipeImage.gameObject.SetActive(false);
-        ready_text.gameObject.SetActive(false);
-        cook_text.gameObject.SetActive(false);
-
-        StartCoroutine(ReadyStateUI());
-    }
-
-    private IEnumerator ReadyStateUI()
+    private IEnumerator ReadyStateUI(RuntimeJudgeRecipe recipe)
     {
         yield return new WaitForSeconds(0.5f);
-        recipeImage.gameObject.SetActive(true);
+
+        // Render the exact RuntimeJudgeRecipe passed by ProcessManager; do not regenerate here.
+        if (readyRecipeUI != null)
+        {
+            readyRecipeUI.Render(recipe);
+            readyRecipeUI.gameObject.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("[UIManager] ReadyRecipeUI is not assigned.", this);
+        }
+
         yield return new WaitForSeconds(5f);
-        ready_text.gameObject.SetActive(true);
+        SetActiveIfAssigned(ready_text, true);
+
         yield return new WaitForSeconds(2f);
-        cook_text.gameObject.SetActive(true);
+        SetActiveIfAssigned(cook_text, true);
+
         yield return new WaitForSeconds(0.5f);
-        readyUI.SetActive(false);
-        ProcessManager.Instance.SwitchToNextState();   //动画放完后切换状态
+        SetActiveIfAssigned(readyUI, false);
+        HideReadyRecipeUI();
+
+        readyCoroutine = null;
+        if (ProcessManager.Instance != null)
+        {
+            ProcessManager.Instance.SwitchToNextState();
+        }
     }
 
     public void TriggerFinishStateUI()
     {
-        finishUI.SetActive(true);
-        score_text.gameObject.SetActive(false);
-        score_text.text = ProcessManager.Instance.Score.ToString();
-        StartCoroutine(FinishStateUI());
+        if (finishCoroutine != null)
+        {
+            StopCoroutine(finishCoroutine);
+        }
+
+        SetActiveIfAssigned(finishUI, true);
+        SetActiveIfAssigned(score_text, false);
+
+        if (score_text != null && ProcessManager.Instance != null)
+        {
+            score_text.text = ProcessManager.Instance.Score.ToString();
+        }
+
+        finishCoroutine = StartCoroutine(FinishStateUI());
     }
 
     public void TriggerEndFinishStateUI()
     {
-        if (FinishStateUI() != null)
+        if (finishCoroutine != null)
         {
-            StopCoroutine(FinishStateUI());
+            StopCoroutine(finishCoroutine);
+            finishCoroutine = null;
         }
-        score_text.gameObject.SetActive(false);
-        finishUI.SetActive(false);
+
+        SetActiveIfAssigned(score_text, false);
+        SetActiveIfAssigned(finishUI, false);
     }
 
     private IEnumerator FinishStateUI()
     {
         yield return new WaitForSeconds(1f);
-        score_text.gameObject.SetActive(true);
+        SetActiveIfAssigned(score_text, true);
+        finishCoroutine = null;
     }
 
     public void TriggerPlacePancakeUI()
     {
-        placePancakeUI.SetActive(true);
+        SetActiveIfAssigned(placePancakeUI, true);
     }
 
     public void TriggerPlaceJamUI()
     {
-        placeJamUI.SetActive(true);
+        SetActiveIfAssigned(placeJamUI, true);
     }
 
     public void TriggerPlaceToppingUI()
     {
-        placeToppingUI.SetActive(true);
+        SetActiveIfAssigned(placeToppingUI, true);
     }
 
     public void TriggerEndPlacePancakeUI()
     {
-        placePancakeUI.SetActive(false);
+        SetActiveIfAssigned(placePancakeUI, false);
     }
 
     public void TriggerEndPlaceJamUI()
     {
-        placeJamUI.SetActive(false);
+        SetActiveIfAssigned(placeJamUI, false);
     }
 
     public void TriggerEndPlaceToppingUI()
     {
-        placeToppingUI.SetActive(false);
+        SetActiveIfAssigned(placeToppingUI, false);
     }
 
     public void ChooseToppingHint()
     {
-        chooseToppingHintUI.SetActive(true);
+        SetActiveIfAssigned(chooseToppingHintUI, true);
         Debug.Log("choose topping hint triggered");
     }
 
     public void EndChooseToppingHint()
     {
-        chooseToppingHintUI.SetActive(false);
+        SetActiveIfAssigned(chooseToppingHintUI, false);
+    }
+
+    private void HideReadyRecipeUI()
+    {
+        if (readyRecipeUI == null)
+        {
+            return;
+        }
+
+        readyRecipeUI.Clear();
+        readyRecipeUI.gameObject.SetActive(false);
+    }
+
+    private void HideLegacyRecipeImage()
+    {
+        if (legacyRecipeImage != null)
+        {
+            legacyRecipeImage.gameObject.SetActive(false);
+        }
+    }
+
+    private static void SetActiveIfAssigned(GameObject target, bool isActive)
+    {
+        if (target != null)
+        {
+            target.SetActive(isActive);
+        }
+    }
+
+    private static void SetActiveIfAssigned(Component target, bool isActive)
+    {
+        if (target != null)
+        {
+            target.gameObject.SetActive(isActive);
+        }
     }
 }

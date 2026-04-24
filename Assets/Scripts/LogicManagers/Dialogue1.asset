@@ -13,22 +13,22 @@ MonoBehaviour:
   m_Name: Dialogue1
   m_EditorClassIdentifier: Assembly-CSharp::DialogueData
   lines:
-  - speakerName: Kaguya
+  - speakerName: ' '
     avatar: {fileID: 21300000, guid: 5a472bed8c925d54c88c9848f2e0dd82, type: 3}
     content: Irohaaa... My stomach is rumbling. I'm so hungry.
-  - speakerName: Kaguya
+  - speakerName: ' '
     avatar: {fileID: 21300000, guid: 5a472bed8c925d54c88c9848f2e0dd82, type: 3}
     content: "I'm craving your special, fluffy Souffl\xE9 pancakes!"
-  - speakerName: Iroha
+  - speakerName: ' '
     avatar: {fileID: 21300000, guid: 8293de3f1bb94bf4baf3a7d5cd3aff72, type: 3}
     content: My pancakes? But you know my cooking is a bit... hit-or-miss.
-  - speakerName: Kaguya
+  - speakerName: ' '
     avatar: {fileID: 21300000, guid: 5a472bed8c925d54c88c9848f2e0dd82, type: 3}
     content: I don't mind! They're the best because you make them for me.
-  - speakerName: Iroha
+  - speakerName: ' '
     avatar: {fileID: 21300000, guid: 8293de3f1bb94bf4baf3a7d5cd3aff72, type: 3}
     content: (Sighs softly) You always know just what to say, don't you?
-  - speakerName: Iroha
+  - speakerName: ' '
     avatar: {fileID: 21300000, guid: 8293de3f1bb94bf4baf3a7d5cd3aff72, type: 3}
     content: Alright, I'll get the ingredients. One batch of pancakes, coming right
       up!

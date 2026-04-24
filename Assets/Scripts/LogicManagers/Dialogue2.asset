@@ -18,14 +18,14 @@ MonoBehaviour:
     content: (Nervously) I... I think this batch came out right! Please, try it,
       Kaguya
   - speakerName: Kaguya
-    avatar: {fileID: 21300000, guid: ca85ad29208a0e346b547ca4d8a6e937, type: 3}
+    avatar: {fileID: 21300000, guid: 5a472bed8c925d54c88c9848f2e0dd82, type: 3}
     content: (Her eyes sparkle as she takes a bite.) Mmm! Iroha!
   - speakerName: Kaguya
-    avatar: {fileID: 21300000, guid: ca85ad29208a0e346b547ca4d8a6e937, type: 3}
+    avatar: {fileID: 21300000, guid: 5a472bed8c925d54c88c9848f2e0dd82, type: 3}
     content: They're absolutely perfect! Fluffy, sweet, and melt-in-your-mouth delicious!
   - speakerName: Iroha
-    avatar: {fileID: 21300000, guid: 681f82db4902e9a4fa3fe39f7f30c840, type: 3}
+    avatar: {fileID: 21300000, guid: 8293de3f1bb94bf4baf3a7d5cd3aff72, type: 3}
     content: (Beams with pride and relief) Really?! Oh, I'm so happy!
   - speakerName: Kaguya
-    avatar: {fileID: 21300000, guid: ca85ad29208a0e346b547ca4d8a6e937, type: 3}
+    avatar: {fileID: 21300000, guid: 5a472bed8c925d54c88c9848f2e0dd82, type: 3}
     content: See? I knew you could do it. You're the best, Iroha!

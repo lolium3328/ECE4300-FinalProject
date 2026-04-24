@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Rendering;
 using UnityEngine;
 
 public class ProcessManager : MonoBehaviour
@@ -105,9 +104,9 @@ public class ProcessManager : MonoBehaviour
                 Debug.Log("switch to state 2");
                 gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
                 placeMode = 0;    //切回默认禁用状态
-                recipeRoundController.GenerateApplyAndJudge();   //生成题目并应用到Judge
+                recipeRoundController.GenerateApplyAndJudge();   //生成本轮 recipe，并把同一份数据应用到 Judge
                 uiManager.TriggerEndFinishStateUI();   //如果上一个状态是结算分数，先隐藏结算UI
-                uiManager.TriggerReadyStateUI();  //UI出示题目，放完自动进下一个状态
+                uiManager.TriggerReadyStateUI(recipeRoundController.CurrentRecipe);  //Ready UI 使用同一份 RuntimeJudgeRecipe 渲染菜单
                 //动画放完后UIManager会调用ProcessManager.SwitchToNextState()来切换状态
                 break;
             case 3:
