@@ -46,6 +46,16 @@ public class GestureSpawnSelector : MonoBehaviour
 
     public bool RecognizeAndApply()
     {
+        if (ProcessManager.Instance != null && !ProcessManager.Instance.IsGestureMode())
+        {
+            if (logSelection)
+            {
+                Debug.Log("[GestureSpawnSelector] Ignored gesture selection because current mode is not gesture mode.");
+            }
+
+            return false;
+        }
+
         if (recognizer == null)
         {
             Debug.LogWarning("[GestureSpawnSelector] Recognizer reference is missing.");
@@ -63,29 +73,18 @@ public class GestureSpawnSelector : MonoBehaviour
         RecognizeAndApply();
     }
 
-    public bool RecognizeAndApplyJamGesture()
+    public bool ApplyLastRecognizedGesture()
     {
-        if (ProcessManager.Instance != null && ProcessManager.Instance.State != 4)
+        if (ProcessManager.Instance != null && !ProcessManager.Instance.IsGestureMode())
         {
             if (logSelection)
             {
-                Debug.Log("[GestureSpawnSelector] Ignored jam gesture because current state is not 4.");
+                Debug.Log("[GestureSpawnSelector] Ignored last gesture selection because current mode is not gesture mode.");
             }
 
             return false;
         }
 
-        return RecognizeAndApply();
-    }
-
-    // Bind this from Ultraleap Pose Events when a jam-selection pose is detected.
-    public void RecognizeAndApplyJamGestureEvent()
-    {
-        RecognizeAndApplyJamGesture();
-    }
-
-    public bool ApplyLastRecognizedGesture()
-    {
         if (recognizer == null)
         {
             Debug.LogWarning("[GestureSpawnSelector] Recognizer reference is missing.");

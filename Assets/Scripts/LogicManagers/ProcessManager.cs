@@ -17,6 +17,7 @@ public class ProcessManager : MonoBehaviour
     [SerializeField] private RecipeRoundController recipeRoundController;    //题目管理器的引用，拖入RecipeRoundController脚本所在的对象
     [SerializeField] private GestureSpawnSelector gestureSpawnSelector;    //手势放置控制器的引用，拖入HandSpawnController脚本所在的对象
     [SerializeField] private TriggerBoxJudge triggerBoxJudge;    //触发判定的引用，拖入TriggerBoxJudge脚本所在的对象
+    [SerializeField] private CreamSurfacePlacementTester jamPlacementController;
 
     private int state = 1;
     /*
@@ -63,6 +64,7 @@ public class ProcessManager : MonoBehaviour
         state = 1;    //初始状态为1，等待开始
         placeMode = 0;    //初始放置模式为0，禁用动作
         gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
+        SetJamInputEnabled(false);
 
         // 启动完整对话序列
         dialogueManager.StartDialogue(Dialogue1, 
@@ -98,12 +100,14 @@ public class ProcessManager : MonoBehaviour
                 //这个状态不应该被切换函数切换到，保持在Start里
                 gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体          
                 placeMode = 0;    //切回默认禁用状态
+                SetJamInputEnabled(false);
                 Debug.LogWarning("状态1不应该被切换函数切换到！");
                 break;
             case 2:
                 Debug.Log("switch to state 2");
                 gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
                 placeMode = 0;    //切回默认禁用状态
+                SetJamInputEnabled(false);
                 recipeRoundController.GenerateApplyAndJudge();   //生成本轮 recipe，并把同一份数据应用到 Judge
                 uiManager.TriggerEndFinishStateUI();   //如果上一个状态是结算分数，先隐藏结算UI
                 uiManager.TriggerReadyStateUI(recipeRoundController.CurrentRecipe);  //Ready UI 使用同一份 RuntimeJudgeRecipe 渲染菜单
@@ -112,6 +116,7 @@ public class ProcessManager : MonoBehaviour
             case 3:
                 Debug.Log("switch to state 3");
                 placeMode = 1;    //切换到放置状态
+                SetJamInputEnabled(false);
                 gestureSpawnSelector.ApplyRecognizedLabel("0");     //预设为松饼
                 countdownTimer.StartCountdown(15f);   //激活倒计时动画
                 StartCoroutine(WaitAndSwitch(15f, 3));    //放置松饼状态启动等待协程
@@ -119,8 +124,8 @@ public class ProcessManager : MonoBehaviour
                 break;
             case 4:
                 Debug.Log("switch to state 4");
-                gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
-                placeMode = 2;    //切换到手势/写字模式，等待玩家输入果酱手势
+                placeMode = 0;    //果酱阶段不做手势选择，只启用 jamPlacementController 使用 Inspector 里拖入的果酱 prefab
+                SetJamInputEnabled(true);
                 countdownTimer.StartCountdown(15f);   //激活倒计时动画
                 StartCoroutine(WaitAndSwitch(15f, 4));    //放果酱状态启动等待协程
                 uiManager.TriggerEndPlacePancakeUI();  //放置松饼的UI提示关闭
@@ -128,6 +133,7 @@ public class ProcessManager : MonoBehaviour
                 break;
             case 5:
                 gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
+                SetJamInputEnabled(false);
                 placeMode = 2;    //切换到手势/写字模式，等待玩家输入手势信号来选择topping
                 uiManager.ChooseToppingHint();   //放置topping的UI提示
                 //放置topping的ui在玩家输入手势信号后结束
@@ -141,6 +147,7 @@ public class ProcessManager : MonoBehaviour
                 uiManager.EndChooseToppingHint();   //结束放置topping的UI提示,如果还没结束
                 gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
                 placeMode = 0;    //切回默认禁用状态
+                SetJamInputEnabled(false);
                 uiManager.TriggerEndPlaceToppingUI();    //激活结束放置topping
                 Debug.Log("switch to state 6");
 
@@ -169,6 +176,7 @@ public class ProcessManager : MonoBehaviour
             case 7:
                 gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
                 placeMode = 0;    //切回默认禁用状态
+                SetJamInputEnabled(false);
                 //UI显示分数
                 uiManager.TriggerFinishStateUI();
                 //可以打断当前结算对话，直接进入下一轮
@@ -206,15 +214,24 @@ public class ProcessManager : MonoBehaviour
         placeMode = mode;
     }
 
-    public void SetPrefabToSpawnDone()      //收到信号预设完成时执行
+    private void SetJamInputEnabled(bool enabled)
     {
-        if (!IsProhibitedMode())
+        if (jamPlacementController == null)
         {
-            placeMode = 1;    //从placemode 2切换到放置模式1，方便
+            jamPlacementController = FindObjectOfType<CreamSurfacePlacementTester>(true);
         }
 
+        if (jamPlacementController != null)
+        {
+            jamPlacementController.SetInputEnabled(enabled);
+        }
+    }
+
+    public void SetPrefabToSpawnDone()      //收到信号预设完成时执行
+    {
         if (state == 5)
         {
+            placeMode = 1;    //只有 topping 阶段的手势选择会切到放置模式
             uiManager.EndChooseToppingHint();   //结束放置topping的UI提示,如果还没结束
         }
     }

@@ -14,6 +14,7 @@ public class CreamSurfacePlacementTester : MonoBehaviour
     [SerializeField] private GameObject creamClusterPrefab;
     [SerializeField] private Transform placementCursor;
     [SerializeField] private Transform spawnParent;
+    [SerializeField] private bool inputEnabled = true;
 
     [Header("Leap Input")]
     [SerializeField] private LeapProvider leapProvider;
@@ -24,7 +25,6 @@ public class CreamSurfacePlacementTester : MonoBehaviour
     [SerializeField] private bool autoExpandInputRange = true;
     [SerializeField] private bool invertLeapZ;
     [SerializeField] private float followSpeed = 15f;
-    [SerializeField] private bool logLeapMapping = true;
     [SerializeField] private float leapMappingLogInterval = 0.25f;
     [SerializeField] private float inputMinX = -0.2f;
     [SerializeField] private float inputMaxX = 0.2f;
@@ -80,6 +80,11 @@ public class CreamSurfacePlacementTester : MonoBehaviour
 
     private void Update()
     {
+        if (!inputEnabled)
+        {
+            return;
+        }
+
         MoveCursorFromKeyboard();
         UpdatePlacementCursor();
 
@@ -106,7 +111,7 @@ public class CreamSurfacePlacementTester : MonoBehaviour
 
     private void OnUpdateFrame(Frame frame)
     {
-        if (!enableLeapInput || frame == null)
+        if (!inputEnabled || !enableLeapInput || frame == null)
         {
             return;
         }
@@ -133,8 +138,7 @@ public class CreamSurfacePlacementTester : MonoBehaviour
         float targetZ = Mathf.Lerp(sceneMinXZ.y, sceneMaxXZ.y, normalizedZ);
         Vector3 targetPosition = new Vector3(targetX, cursorPosition.y, targetZ);
         cursorPosition = Vector3.Lerp(cursorPosition, targetPosition, Mathf.Clamp01(followSpeed * Time.deltaTime));
-        Debug.Log($"出现了");
-        LogLeapPosition(rawPosition);
+        LogLeapAndCursorPosition(rawPosition);
     }
 
     private Vector3 GetTrackedPosition(Hand hand)
@@ -165,17 +169,38 @@ public class CreamSurfacePlacementTester : MonoBehaviour
         return normalized;
     }
 
-    private void LogLeapPosition(Vector3 rawPosition)
+    private void LogLeapAndCursorPosition(Vector3 rawPosition)
     {
         if (Time.time < nextLeapMappingLogTime)
         {
-            Debug.Log($"没了2");
             return;
         }
-        Debug.Log($"出现了2");
 
         nextLeapMappingLogTime = Time.time + Mathf.Max(0.01f, leapMappingLogInterval);
-        Debug.Log($"[CreamSurfacePlacementTester] Hand xyz=({rawPosition.x:F3}, {rawPosition.y:F3}, {rawPosition.z:F3})", this);
+        string visibleCursorText = placementCursor != null
+            ? $"visibleCursor=({placementCursor.position.x:F3}, {placementCursor.position.y:F3}, {placementCursor.position.z:F3})"
+            : "visibleCursor=null";
+
+        Debug.Log(
+            $"[CreamSurfacePlacementTester] Hand xyz=({rawPosition.x:F3}, {rawPosition.y:F3}, {rawPosition.z:F3}) " +
+            $"cursor=({cursorPosition.x:F3}, {cursorPosition.y:F3}, {cursorPosition.z:F3}) " +
+            $"{visibleCursorText} surfaceHit={hasSurfaceHit}",
+            this);
+    }
+
+    public void SetInputEnabled(bool enabled)
+    {
+        inputEnabled = enabled;
+    }
+
+    public void EnableInput()
+    {
+        SetInputEnabled(true);
+    }
+
+    public void DisableInput()
+    {
+        SetInputEnabled(false);
     }
 
     public void CalibrateInputRangeFromCurrentHand()
@@ -205,11 +230,21 @@ public class CreamSurfacePlacementTester : MonoBehaviour
 
     public void SpawnCreamAtCurrentSurfaceEvent()
     {
+        if (!inputEnabled)
+        {
+            return;
+        }
+
         SpawnCream();
     }
 
     public void SpawnCreamAtCurrentSurfaceWithIntervalEvent()
     {
+        if (!inputEnabled)
+        {
+            return;
+        }
+
         SpawnCreamAtCurrentSurfaceWithInterval();
     }
 
