@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   displayNamePrefix: Random Recipe
   minTotalCount: 1
-  maxTotalCount: 3
+  maxTotalCount: 5
   rejectUnexpectedTypes: 1
   maxGenerationAttempts: 32
   rules:
