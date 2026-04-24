@@ -1,12 +1,37 @@
 using System.Collections.Generic;
+using Leap;
 using UnityEngine;
 
 public class CreamSurfacePlacementTester : MonoBehaviour
 {
+    private enum HandTrackTarget
+    {
+        Palm,
+        IndexTip
+    }
+
     [Header("References")]
     [SerializeField] private GameObject creamClusterPrefab;
     [SerializeField] private Transform placementCursor;
     [SerializeField] private Transform spawnParent;
+
+    [Header("Leap Input")]
+    [SerializeField] private LeapProvider leapProvider;
+    [SerializeField] private Chirality handType = Chirality.Right;
+    [SerializeField] private HandTrackTarget trackTarget = HandTrackTarget.IndexTip;
+    [SerializeField] private bool enableLeapInput = true;
+    [SerializeField] private bool autoFindLeapProvider = true;
+    [SerializeField] private bool autoExpandInputRange = true;
+    [SerializeField] private bool invertLeapZ;
+    [SerializeField] private float followSpeed = 15f;
+    [SerializeField] private bool logLeapMapping = true;
+    [SerializeField] private float leapMappingLogInterval = 0.25f;
+    [SerializeField] private float inputMinX = -0.2f;
+    [SerializeField] private float inputMaxX = 0.2f;
+    [SerializeField] private float inputMinZ = -0.2f;
+    [SerializeField] private float inputMaxZ = 0.2f;
+    [SerializeField] private Vector2 sceneMinXZ = new Vector2(-0.2f, -0.25f);
+    [SerializeField] private Vector2 sceneMaxXZ = new Vector2(0.66f, 0.45f);
 
     [Header("Surface Raycast")]
     [SerializeField] private LayerMask surfaceMask = ~0;
@@ -19,11 +44,14 @@ public class CreamSurfacePlacementTester : MonoBehaviour
     [SerializeField] private float moveSpeed = 0.35f;
     [SerializeField] private KeyCode spawnKey = KeyCode.F;
     [SerializeField] private KeyCode clearKey = KeyCode.Backspace;
+    [SerializeField] private float continuousSpawnInterval = 0.25f;
 
     private readonly List<GameObject> spawnedCream = new List<GameObject>();
     private Vector3 cursorPosition;
     private bool hasSurfaceHit;
     private RaycastHit lastHit;
+    private float nextSpawnTime;
+    private float nextLeapMappingLogTime;
 
     private void Awake()
     {
@@ -32,20 +60,173 @@ public class CreamSurfacePlacementTester : MonoBehaviour
         UpdatePlacementCursor();
     }
 
+    private void OnEnable()
+    {
+        EnsureLeapProvider();
+
+        if (leapProvider != null)
+        {
+            leapProvider.OnUpdateFrame += OnUpdateFrame;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (leapProvider != null)
+        {
+            leapProvider.OnUpdateFrame -= OnUpdateFrame;
+        }
+    }
+
     private void Update()
     {
         MoveCursorFromKeyboard();
         UpdatePlacementCursor();
 
-        if (Input.GetKeyDown(spawnKey))
+        if (Input.GetKey(spawnKey))
         {
-            SpawnCream();
+            SpawnCreamAtCurrentSurfaceWithInterval();
         }
 
         if (Input.GetKeyDown(clearKey))
         {
             ClearSpawnedCream();
         }
+    }
+
+    private void EnsureLeapProvider()
+    {
+        if (leapProvider != null || !autoFindLeapProvider)
+        {
+            return;
+        }
+
+        leapProvider = FindObjectOfType<LeapProvider>();
+    }
+
+    private void OnUpdateFrame(Frame frame)
+    {
+        if (!enableLeapInput || frame == null)
+        {
+            return;
+        }
+
+        Hand hand = frame.GetHand(handType);
+        if (hand == null)
+        {
+            return;
+        }
+
+        Vector3 rawPosition = GetTrackedPosition(hand);
+
+        if (autoExpandInputRange)
+        {
+            inputMinX = Mathf.Min(inputMinX, rawPosition.x);
+            inputMaxX = Mathf.Max(inputMaxX, rawPosition.x);
+            inputMinZ = Mathf.Min(inputMinZ, rawPosition.z);
+            inputMaxZ = Mathf.Max(inputMaxZ, rawPosition.z);
+        }
+
+        float normalizedX = NormalizeLeapAxis(rawPosition.x, inputMinX, inputMaxX, false);
+        float normalizedZ = NormalizeLeapAxis(rawPosition.z, inputMinZ, inputMaxZ, invertLeapZ);
+        float targetX = Mathf.Lerp(sceneMinXZ.x, sceneMaxXZ.x, normalizedX);
+        float targetZ = Mathf.Lerp(sceneMinXZ.y, sceneMaxXZ.y, normalizedZ);
+        Vector3 targetPosition = new Vector3(targetX, cursorPosition.y, targetZ);
+        cursorPosition = Vector3.Lerp(cursorPosition, targetPosition, Mathf.Clamp01(followSpeed * Time.deltaTime));
+        Debug.Log($"出现了");
+        LogLeapPosition(rawPosition);
+    }
+
+    private Vector3 GetTrackedPosition(Hand hand)
+    {
+        if (trackTarget == HandTrackTarget.Palm)
+        {
+            return hand.PalmPosition;
+        }
+
+        Finger indexFinger = hand.Index;
+        return indexFinger != null ? indexFinger.TipPosition : hand.PalmPosition;
+    }
+
+    private static float NormalizeLeapAxis(float rawValue, float inputMin, float inputMax, bool invert)
+    {
+        float inputRange = inputMax - inputMin;
+        if (Mathf.Abs(inputRange) < 0.0001f)
+        {
+            return 0f;
+        }
+
+        float normalized = Mathf.InverseLerp(inputMin, inputMax, rawValue);
+        if (invert)
+        {
+            normalized = 1f - normalized;
+        }
+
+        return normalized;
+    }
+
+    private void LogLeapPosition(Vector3 rawPosition)
+    {
+        if (Time.time < nextLeapMappingLogTime)
+        {
+            Debug.Log($"没了2");
+            return;
+        }
+        Debug.Log($"出现了2");
+
+        nextLeapMappingLogTime = Time.time + Mathf.Max(0.01f, leapMappingLogInterval);
+        Debug.Log($"[CreamSurfacePlacementTester] Hand xyz=({rawPosition.x:F3}, {rawPosition.y:F3}, {rawPosition.z:F3})", this);
+    }
+
+    public void CalibrateInputRangeFromCurrentHand()
+    {
+        EnsureLeapProvider();
+        if (leapProvider == null || leapProvider.CurrentFrame == null)
+        {
+            Debug.LogWarning("[CreamSurfacePlacementTester] LeapProvider is missing, cannot calibrate hand input range.", this);
+            return;
+        }
+
+        Hand hand = leapProvider.CurrentFrame.GetHand(handType);
+        if (hand == null)
+        {
+            Debug.LogWarning("[CreamSurfacePlacementTester] Target hand is missing, cannot calibrate hand input range.", this);
+            return;
+        }
+
+        Vector3 rawPosition = GetTrackedPosition(hand);
+        float halfX = Mathf.Max(0.01f, (inputMaxX - inputMinX) * 0.5f);
+        float halfZ = Mathf.Max(0.01f, (inputMaxZ - inputMinZ) * 0.5f);
+        inputMinX = rawPosition.x - halfX;
+        inputMaxX = rawPosition.x + halfX;
+        inputMinZ = rawPosition.z - halfZ;
+        inputMaxZ = rawPosition.z + halfZ;
+    }
+
+    public void SpawnCreamAtCurrentSurfaceEvent()
+    {
+        SpawnCream();
+    }
+
+    public void SpawnCreamAtCurrentSurfaceWithIntervalEvent()
+    {
+        SpawnCreamAtCurrentSurfaceWithInterval();
+    }
+
+    private bool SpawnCreamAtCurrentSurfaceWithInterval()
+    {
+        if (Time.time < nextSpawnTime)
+        {
+            return false;
+        }
+
+        bool spawned = SpawnCream();
+        if (spawned)
+        {
+            nextSpawnTime = Time.time + Mathf.Max(0.01f, continuousSpawnInterval);
+        }
+
+        return spawned;
     }
 
     private void MoveCursorFromKeyboard()
@@ -104,18 +285,18 @@ public class CreamSurfacePlacementTester : MonoBehaviour
         }
     }
 
-    private void SpawnCream()
+    private bool SpawnCream()
     {
         if (creamClusterPrefab == null)
         {
             Debug.LogWarning("[CreamSurfacePlacementTester] Cream cluster prefab is not assigned.", this);
-            return;
+            return false;
         }
 
         if (!hasSurfaceHit)
         {
             Debug.LogWarning("[CreamSurfacePlacementTester] No valid surface found under the placement cursor.", this);
-            return;
+            return false;
         }
 
         Vector3 spawnPosition = lastHit.point + lastHit.normal * surfaceOffset;
@@ -125,6 +306,7 @@ public class CreamSurfacePlacementTester : MonoBehaviour
 
         GameObject instance = Instantiate(creamClusterPrefab, spawnPosition, spawnRotation, spawnParent);
         spawnedCream.Add(instance);
+        return true;
     }
 
     private void ClearSpawnedCream()

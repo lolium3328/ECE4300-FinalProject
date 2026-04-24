@@ -34,10 +34,20 @@ public class CreamSphereCluster : MonoBehaviour
     [SerializeField] private float edgeIrregularity = 0.18f;
     [SerializeField] private int dripCount = 4;
     [SerializeField] private float dripLength = 0.04f;
+    [SerializeField, Range(0f, 1f)] private float gravityDripBias = 0.65f;
     [SerializeField] private float spreadDuration = 0.65f;
     [SerializeField] private float waveAmplitude = 0.0035f;
     [SerializeField] private float waveFrequency = 3.2f;
     [SerializeField] private float edgeFlowAmplitude = 0.055f;
+
+    [Header("Surface Adhesion")]
+    [SerializeField] private bool adhereEdgesToSurface = true;
+    [SerializeField] private LayerMask adhesionSurfaceMask = ~0;
+    [SerializeField] private float adhesionProbeRadius = 0.045f;
+    [SerializeField] private float adhesionProbeDistance = 0.16f;
+    [SerializeField] private float adhesionSurfaceOffset = 0.002f;
+    [SerializeField, Range(0f, 1f)] private float adhesionStartRadius = 0.78f;
+    [SerializeField, Range(0f, 1f)] private float edgeAdhesionStrength = 0.88f;
 
     [Header("Material")]
     [SerializeField] private Material sphereMaterial;
@@ -129,7 +139,18 @@ public class CreamSphereCluster : MonoBehaviour
         meshRenderer.sharedMaterial = GetMaterial();
 
         JamFluidSurfaceAnimator animator = fluid.AddComponent<JamFluidSurfaceAnimator>();
-        animator.Configure(spreadDuration, waveAmplitude, waveFrequency, edgeFlowAmplitude);
+        animator.Configure(
+            spreadDuration,
+            waveAmplitude,
+            waveFrequency,
+            edgeFlowAmplitude,
+            adhereEdgesToSurface,
+            adhesionSurfaceMask,
+            adhesionProbeRadius,
+            adhesionProbeDistance,
+            adhesionSurfaceOffset,
+            adhesionStartRadius,
+            edgeAdhesionStrength);
 
         generatedSpheres.Add(fluid);
     }
@@ -245,10 +266,13 @@ public class CreamSphereCluster : MonoBehaviour
         float baseRadius = Mathf.Max(0.01f, clusterRadius);
         int safeDripCount = Mathf.Clamp(dripCount, 0, 12);
         float[] dripAngles = new float[safeDripCount];
+        float gravityFlowAngle = GetLocalGravityFlowAngle();
 
         for (int i = 0; i < safeDripCount; i++)
         {
-            dripAngles[i] = Random.Range(0f, Mathf.PI * 2f);
+            dripAngles[i] = Random.value < gravityDripBias
+                ? gravityFlowAngle + Random.Range(-0.5f, 0.5f)
+                : Random.Range(0f, Mathf.PI * 2f);
         }
 
         for (int segment = 0; segment < segments; segment++)
@@ -269,6 +293,20 @@ public class CreamSphereCluster : MonoBehaviour
         }
 
         return radii;
+    }
+
+    private float GetLocalGravityFlowAngle()
+    {
+        Vector3 localGravity = transform.InverseTransformDirection(Vector3.down);
+        localGravity.y = 0f;
+
+        if (localGravity.sqrMagnitude < 0.0001f)
+        {
+            localGravity = Vector3.back;
+        }
+
+        localGravity.Normalize();
+        return Mathf.Atan2(localGravity.z, localGravity.x);
     }
 
     private Vector3 SampleLocalPosition(int index, int totalCount)

@@ -119,7 +119,8 @@ public class ProcessManager : MonoBehaviour
                 break;
             case 4:
                 Debug.Log("switch to state 4");
-                //放果酱，暂时空着先
+                gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
+                placeMode = 2;    //切换到手势/写字模式，等待玩家输入果酱手势
                 countdownTimer.StartCountdown(15f);   //激活倒计时动画
                 StartCoroutine(WaitAndSwitch(15f, 4));    //放果酱状态启动等待协程
                 uiManager.TriggerEndPlacePancakeUI();  //放置松饼的UI提示关闭
@@ -211,6 +212,10 @@ public class ProcessManager : MonoBehaviour
         {
             placeMode = 1;    //从placemode 2切换到放置模式1，方便
         }
-        uiManager.EndChooseToppingHint();   //结束放置topping的UI提示,如果还没结束
+
+        if (state == 5)
+        {
+            uiManager.EndChooseToppingHint();   //结束放置topping的UI提示,如果还没结束
+        }
     }
 }

@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7040052554129892836
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9135369164234234840}
+  - component: {fileID: 9054022861601952455}
+  m_Layer: 0
+  m_Name: CreamSphereCluster
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9135369164234234840
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7040052554129892836}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.4613374, y: 0.8913383, z: 3.0937161}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9054022861601952455
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7040052554129892836}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30663c928f5719b43b0c29f132cf6af0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shape: 0
+  sphereCount: 32
+  clusterRadius: 0.045
+  centerBias: 2.5
+  sphereScale: 0.01
+  scaleJitter: 0.008
+  heightJitter: 0.018
+  yScaleMultiplier: 0.65
+  coreBlobCount: 7
+  coreRadius: 0.03
+  coreScaleMultiplier: 1.35
+  edgeDropletChance: 0.22
+  edgeDropletScaleMultiplier: 0.72
+  fluidSegments: 72
+  fluidRings: 6
+  fluidThickness: 0.005
+  edgeIrregularity: 0.18
+  dripCount: 4
+  dripLength: 0.012
+  gravityDripBias: 0.65
+  spreadDuration: 0.65
+  waveAmplitude: 0.0035
+  waveFrequency: 3.2
+  edgeFlowAmplitude: 0.025
+  adhereEdgesToSurface: 1
+  adhesionSurfaceMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  adhesionProbeRadius: 0.045
+  adhesionProbeDistance: 0.16
+  adhesionSurfaceOffset: 0.002
+  adhesionStartRadius: 0.68
+  edgeAdhesionStrength: 1
+  sphereMaterial: {fileID: 0}
+  jamColor: {r: 0.9481132, g: 0.9008544, b: 0.6842515, a: 1}
+  smoothness: 0.7
+  generateOnAwake: 1

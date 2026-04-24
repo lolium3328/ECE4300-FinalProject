@@ -63,6 +63,27 @@ public class GestureSpawnSelector : MonoBehaviour
         RecognizeAndApply();
     }
 
+    public bool RecognizeAndApplyJamGesture()
+    {
+        if (ProcessManager.Instance != null && ProcessManager.Instance.State != 4)
+        {
+            if (logSelection)
+            {
+                Debug.Log("[GestureSpawnSelector] Ignored jam gesture because current state is not 4.");
+            }
+
+            return false;
+        }
+
+        return RecognizeAndApply();
+    }
+
+    // Bind this from Ultraleap Pose Events when a jam-selection pose is detected.
+    public void RecognizeAndApplyJamGestureEvent()
+    {
+        RecognizeAndApplyJamGesture();
+    }
+
     public bool ApplyLastRecognizedGesture()
     {
         if (recognizer == null)
