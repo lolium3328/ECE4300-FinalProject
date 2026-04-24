@@ -53,6 +53,8 @@ public class CreamSurfacePlacementTester : MonoBehaviour
     private float nextSpawnTime;
     private float nextLeapMappingLogTime;
 
+    public GameObject CurrentPrefabToSpawn => creamClusterPrefab;
+
     private void Awake()
     {
         Transform cursor = placementCursor != null ? placementCursor : transform;
@@ -198,6 +200,17 @@ public class CreamSurfacePlacementTester : MonoBehaviour
         }
 
         ApplyCursorVisibility();
+    }
+
+    public void SetPrefabToSpawn(GameObject newPrefab)
+    {
+        if (newPrefab == null)
+        {
+            Debug.LogWarning("[CreamSurfacePlacementTester] SetPrefabToSpawn received a null prefab.", this);
+            return;
+        }
+
+        creamClusterPrefab = newPrefab;
     }
 
     public void EnableInput()

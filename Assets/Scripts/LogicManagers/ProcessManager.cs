@@ -124,8 +124,8 @@ public class ProcessManager : MonoBehaviour
                 break;
             case 4:
                 Debug.Log("switch to state 4");
-                placeMode = 0;    //果酱阶段不做手势选择，只启用 jamPlacementController 使用 Inspector 里拖入的果酱 prefab
-                SetJamInputEnabled(true);
+                placeMode = 2;    //果酱阶段先进入手势选择，选中 prefab 后再启用 jamPlacementController 放置
+                SetJamInputEnabled(false);
                 countdownTimer.StartCountdown(15f);   //激活倒计时动画
                 StartCoroutine(WaitAndSwitch(15f, 4));    //放果酱状态启动等待协程
                 uiManager.TriggerEndPlacePancakeUI();  //放置松饼的UI提示关闭
@@ -229,7 +229,12 @@ public class ProcessManager : MonoBehaviour
 
     public void SetPrefabToSpawnDone()      //收到信号预设完成时执行
     {
-        if (state == 5)
+        if (state == 4)
+        {
+            placeMode = 1;    //果酱阶段手势选择完成后，切到放置模式并显示 cursor
+            SetJamInputEnabled(true);
+        }
+        else if (state == 5)
         {
             placeMode = 1;    //只有 topping 阶段的手势选择会切到放置模式
             uiManager.EndChooseToppingHint();   //结束放置topping的UI提示,如果还没结束

@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 9135369164234234840}
   - component: {fileID: 9054022861601952455}
-  - component: {fileID: 3817352350193257711}
+  - component: {fileID: 4674087699943926105}
   m_Layer: 0
-  m_Name: CreamSphereCluster
+  m_Name: Chocolatejam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -79,10 +79,10 @@ MonoBehaviour:
   adhesionStartRadius: 0.68
   edgeAdhesionStrength: 1
   sphereMaterial: {fileID: 0}
-  jamColor: {r: 0.9481132, g: 0.9008544, b: 0.6842515, a: 1}
+  jamColor: {r: 0.4528302, g: 0.2819045, b: 0.24136703, a: 1}
   smoothness: 0.7
   generateOnAwake: 1
---- !u!114 &3817352350193257711
+--- !u!114 &4674087699943926105
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -94,6 +94,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d523f869962309943b68e9708e00e57c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  prefabType: 3
+  prefabType: 5
   isJudgeable: 1
   countsTowardSpawnLimit: 1

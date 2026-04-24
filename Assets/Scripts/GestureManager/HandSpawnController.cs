@@ -76,23 +76,30 @@ public class HandSpawnController : MonoBehaviour
 
     private void Update()   //处理键盘手动调整放置位置
     {
+        bool isPlacementActive = IsPlacementModuleActive();
+        SetPreviewVisible(isPlacementActive);
+        if (!isPlacementActive)
+        {
+            return;
+        }
+
         _currentXApply = _currentX + _currentXDelta;
         ApplyPointPosition(_currentXApply);
 
         //加入键盘的手动调整
-        if (Input.GetKey(KeyCode.D) && ProcessManager.Instance.IsPlacementMode())
+        if (Input.GetKey(KeyCode.D))
         {
             waitTimer = 0f; // 重置计时器，保持在有输入状态
             _currentXDelta += followSpeedKeyboard * Time.deltaTime;
             ApplyPointPosition(_currentXApply);
         }
-        if (Input.GetKey(KeyCode.A) && ProcessManager.Instance.IsPlacementMode())
+        if (Input.GetKey(KeyCode.A))
         {
             waitTimer = 0f; // 重置计时器，保持在有输入状态
             _currentXDelta -= followSpeedKeyboard * Time.deltaTime;
             ApplyPointPosition(_currentXApply);
         }
-        if (Input.GetKeyUp(KeyCode.S) && ProcessManager.Instance.IsPlacementMode())
+        if (Input.GetKeyUp(KeyCode.S))
         {
             waitTimer = 0f; // 重置计时器，准备在放开后逐渐恢复
         }
@@ -242,6 +249,7 @@ public class HandSpawnController : MonoBehaviour
         }
 
         SetPreviewAlpha(previewIdleAlpha);
+        SetPreviewVisible(IsPlacementModuleActive());
     }
 
     public void SetPrefabToSpawn(GameObject newPrefab)  // 供外部调用以更改当前生成物体的预设,例如 GestureSpawnSelector 根据识别结果切换预设
@@ -280,6 +288,15 @@ public class HandSpawnController : MonoBehaviour
 
         _previewRenderers = null;
         EnsurePreviewInstance();
+        SetPreviewVisible(IsPlacementModuleActive());
+    }
+
+    private void SetPreviewVisible(bool isVisible)
+    {
+        if (_previewInstance != null && _previewInstance.activeSelf != isVisible)
+        {
+            _previewInstance.SetActive(isVisible);
+        }
     }
 
     private void SetPreviewAlpha(float alpha)
@@ -483,7 +500,7 @@ public class HandSpawnController : MonoBehaviour
     {
         if (ProcessManager.Instance != null)
         {
-            return ProcessManager.Instance.IsPlacementMode();
+            return ProcessManager.Instance.IsPlacementMode() && ProcessManager.Instance.State != 4;
         }
 
         return true;

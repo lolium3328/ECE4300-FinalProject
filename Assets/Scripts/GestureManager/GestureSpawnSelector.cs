@@ -14,9 +14,11 @@ public class GestureSpawnSelector : MonoBehaviour
     [Header("References")]
     public GestureTemplateRecognizer recognizer;
     public HandSpawnController handSpawnController;
+    public CreamSurfacePlacementTester jamPlacementController;
 
     [Header("Mappings")]
     public List<GesturePrefabMapping> mappings = new List<GesturePrefabMapping>();
+    public List<GesturePrefabMapping> jamMappings = new List<GesturePrefabMapping>();
 
     [Header("Options")]
     public bool ignoreNoneLabel = true;
@@ -41,6 +43,11 @@ public class GestureSpawnSelector : MonoBehaviour
         if (handSpawnController == null)
         {
             handSpawnController = FindObjectOfType<HandSpawnController>();
+        }
+
+        if (jamPlacementController == null)
+        {
+            jamPlacementController = FindObjectOfType<CreamSurfacePlacementTester>();
         }
     }
 
@@ -104,10 +111,21 @@ public class GestureSpawnSelector : MonoBehaviour
 
     public bool ApplyRecognizedLabel(string label)
     {
-        if (handSpawnController == null)
+        bool isJamSelection = ProcessManager.Instance != null && ProcessManager.Instance.State == 4;
+        if (!isJamSelection && handSpawnController == null)
         {
             Debug.LogWarning("[GestureSpawnSelector] HandSpawnController reference is missing.");
             return false;
+        }
+
+        if (isJamSelection && jamPlacementController == null)
+        {
+            jamPlacementController = FindObjectOfType<CreamSurfacePlacementTester>(true);
+            if (jamPlacementController == null)
+            {
+                Debug.LogWarning("[GestureSpawnSelector] Jam placement controller reference is missing.");
+                return false;
+            }
         }
 
         string normalizedLabel = NormalizeLabel(label);
@@ -132,9 +150,9 @@ public class GestureSpawnSelector : MonoBehaviour
             return false;
         }
 
-        if (TryGetMappedPrefab(normalizedLabel, out GameObject mappedPrefab))
+        if (TryGetMappedPrefab(normalizedLabel, isJamSelection, out GameObject mappedPrefab))
         {
-            handSpawnController.SetPrefabToSpawn(mappedPrefab);     //将识别到的标签对应的预设设置为当前要放置的预设
+            ApplyPrefabToCurrentStage(mappedPrefab, isJamSelection);
             lastAppliedPrefab = mappedPrefab;
             ClearGestureDrawing();
             if (ProcessManager.Instance != null)   
@@ -144,7 +162,7 @@ public class GestureSpawnSelector : MonoBehaviour
 
             if (logSelection)
             {
-                Debug.Log($"[GestureSpawnSelector] Applied label '{normalizedLabel}' to prefab '{mappedPrefab.name}'.");
+                Debug.Log($"[GestureSpawnSelector] Applied label '{normalizedLabel}' to prefab '{mappedPrefab.name}' for {(isJamSelection ? "jam" : "hand spawn")}.");
             }
 
             return true;
@@ -152,7 +170,7 @@ public class GestureSpawnSelector : MonoBehaviour
 
         if (useFallbackWhenNoMatch && fallbackPrefab != null)      //如果没有找到匹配的标签，并且启用了使用预设作为后备选项，则应用后备预设
         {
-            handSpawnController.SetPrefabToSpawn(fallbackPrefab);
+            ApplyPrefabToCurrentStage(fallbackPrefab, isJamSelection);
             lastAppliedPrefab = fallbackPrefab;
             ClearGestureDrawing();
             if (ProcessManager.Instance != null)
@@ -173,6 +191,17 @@ public class GestureSpawnSelector : MonoBehaviour
         return false;
     }
 
+    private void ApplyPrefabToCurrentStage(GameObject prefab, bool isJamSelection)
+    {
+        if (isJamSelection)
+        {
+            jamPlacementController.SetPrefabToSpawn(prefab);
+            return;
+        }
+
+        handSpawnController.SetPrefabToSpawn(prefab);
+    }
+
     private void ClearGestureDrawing()
     {
         if (recognizer != null)
@@ -181,9 +210,11 @@ public class GestureSpawnSelector : MonoBehaviour
         }
     }
 
-    private bool TryGetMappedPrefab(string label, out GameObject prefab)
+    private bool TryGetMappedPrefab(string label, bool isJamSelection, out GameObject prefab)
     {
-        foreach (GesturePrefabMapping mapping in mappings)
+        List<GesturePrefabMapping> activeMappings = isJamSelection ? jamMappings : mappings;
+
+        foreach (GesturePrefabMapping mapping in activeMappings)
         {
             if (mapping == null || mapping.prefab == null)
             {
@@ -198,6 +229,12 @@ public class GestureSpawnSelector : MonoBehaviour
 
             prefab = mapping.prefab;
             return true;
+        }
+
+        if (isJamSelection && jamMappings.Count == 0 && jamPlacementController != null)
+        {
+            prefab = jamPlacementController.CurrentPrefabToSpawn;
+            return prefab != null;
         }
 
         prefab = null;

@@ -2,11 +2,12 @@ using UnityEngine;
 //类型文件
 public enum PrefabType
 {
-    Pancake,
-    Fruit,
-    Topping,
-    Cream,
-    Syrup
+    Pancake = 0,
+    Fruit = 1,
+    Topping = 2,
+    Cream1 = 3,
+    Syrup = 4,
+    Cream2 = 5
 }
 
 [DisallowMultipleComponent]

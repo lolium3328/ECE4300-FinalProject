@@ -198,7 +198,7 @@ public class TriggerBoxJudge : MonoBehaviour
                 counts[snapshot.Type] = 0;
             }
 
-            counts[snapshot.Type]++;
+            counts[snapshot.Type] = IsCreamChoice(snapshot.Type) ? 1 : counts[snapshot.Type] + 1;
         }
 
         return counts;
@@ -237,6 +237,7 @@ public class TriggerBoxJudge : MonoBehaviour
         totalDifference = 0;
         totalRequiredCount = 0;
         HashSet<PrefabType> requiredTypes = new HashSet<PrefabType>();
+        Dictionary<PrefabType, int> unexpectedTypeCredits = new Dictionary<PrefabType, int>();
         IReadOnlyList<JudgeRequirementEntry> activeRequirements = ActiveRequirements;
 
         for (int i = 0; i < activeRequirements.Count; i++)
@@ -251,7 +252,13 @@ public class TriggerBoxJudge : MonoBehaviour
             totalRequiredCount += requirement.requiredCount;
 
             int actualCount = actualCounts.TryGetValue(requirement.prefabType, out int count) ? count : 0;
-            totalDifference += Mathf.Abs(actualCount - requirement.requiredCount);
+            int difference = Mathf.Abs(actualCount - requirement.requiredCount);
+            if (IsCreamChoice(requirement.prefabType) && actualCount < requirement.requiredCount)
+            {
+                difference = GetCreamChoiceDifference(requirement.prefabType, requirement.requiredCount, actualCounts, unexpectedTypeCredits);
+            }
+
+            totalDifference += difference;
         }
 
         if (ShouldRejectUnexpectedTypes)
@@ -260,12 +267,39 @@ public class TriggerBoxJudge : MonoBehaviour
             {
                 if (!requiredTypes.Contains(pair.Key))
                 {
-                    totalDifference += pair.Value;
+                    int creditedCount = unexpectedTypeCredits.TryGetValue(pair.Key, out int credit) ? credit : 0;
+                    totalDifference += Mathf.Max(0, pair.Value - creditedCount);
                 }
             }
         }
 
         return totalDifference == 0;
+    }
+
+    private static int GetCreamChoiceDifference(
+        PrefabType requiredType,
+        int requiredCount,
+        Dictionary<PrefabType, int> actualCounts,
+        Dictionary<PrefabType, int> unexpectedTypeCredits)
+    {
+        PrefabType alternateType = requiredType == PrefabType.Cream1 ? PrefabType.Cream2 : PrefabType.Cream1;
+        int actualRequiredCount = actualCounts.TryGetValue(requiredType, out int matchingCount) ? matchingCount : 0;
+        int alternateCount = actualCounts.TryGetValue(alternateType, out int wrongCount) ? wrongCount : 0;
+        int missingRequiredCount = Mathf.Max(0, requiredCount - actualRequiredCount);
+        int alternateUsedAsWrongChoice = Mathf.Min(missingRequiredCount, alternateCount);
+        if (alternateUsedAsWrongChoice > 0)
+        {
+            unexpectedTypeCredits[alternateType] = unexpectedTypeCredits.TryGetValue(alternateType, out int existingCredit)
+                ? existingCredit + alternateUsedAsWrongChoice
+                : alternateUsedAsWrongChoice;
+        }
+
+        return missingRequiredCount;
+    }
+
+    private static bool IsCreamChoice(PrefabType prefabType)
+    {
+        return prefabType == PrefabType.Cream1 || prefabType == PrefabType.Cream2;
     }
 
     /// <summary>

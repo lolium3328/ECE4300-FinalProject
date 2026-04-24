@@ -121,7 +121,13 @@ public static class RandomRecipeGenerator
             currentTotal += initialCount;
         }
 
-        int targetTotal = UnityEngine.Random.Range(minTotal, maxTotal + 1);
+        int targetMinTotal = Mathf.Max(minTotal, currentTotal);
+        if (targetMinTotal > maxTotal)
+        {
+            return false;
+        }
+
+        int targetTotal = UnityEngine.Random.Range(targetMinTotal, maxTotal + 1);
         while (currentTotal < targetTotal)
         {
             List<RecipeGenerationCandidate> candidates = BuildCandidates(usableRules, counts, currentTotal, targetTotal);
@@ -152,6 +158,11 @@ public static class RandomRecipeGenerator
         for (int i = 0; i < usableRules.Count; i++)
         {
             RecipeGenerationRule rule = usableRules[i];
+            if (IsBlockedByExclusiveCreamSelection(rule.prefabType, counts))
+            {
+                continue;
+            }
+
             int existingCount = counts.TryGetValue(rule.prefabType, out int count) ? count : 0;
 
             if (existingCount >= rule.maxCount)
@@ -258,6 +269,24 @@ public static class RandomRecipeGenerator
         string recipeId = Guid.NewGuid().ToString("N");
         string displayName = BuildDisplayName(config.DisplayNamePrefix, requirements);
         return new RuntimeJudgeRecipe(recipeId, displayName, config.RejectUnexpectedTypes, requirements);
+    }
+
+    private static bool IsBlockedByExclusiveCreamSelection(PrefabType prefabType, Dictionary<PrefabType, int> counts)
+    {
+        if (!IsCreamChoice(prefabType))
+        {
+            return false;
+        }
+
+        bool hasCream1 = counts.TryGetValue(PrefabType.Cream1, out int cream1Count) && cream1Count > 0;
+        bool hasCream2 = counts.TryGetValue(PrefabType.Cream2, out int cream2Count) && cream2Count > 0;
+
+        return (prefabType == PrefabType.Cream1 && hasCream2) || (prefabType == PrefabType.Cream2 && hasCream1);
+    }
+
+    private static bool IsCreamChoice(PrefabType prefabType)
+    {
+        return prefabType == PrefabType.Cream1 || prefabType == PrefabType.Cream2;
     }
 
     private static string BuildDisplayName(string prefix, List<JudgeRequirementEntry> requirements)
