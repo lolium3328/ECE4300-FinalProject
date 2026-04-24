@@ -229,7 +229,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   countdownTimerObj: {fileID: 0}
   fillCircle: {fileID: 0}
-  timerText: {fileID: 0}
   totalTime: 10
 --- !u!1 &7008324214709055783
 GameObject:

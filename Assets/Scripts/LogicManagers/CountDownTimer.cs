@@ -6,20 +6,24 @@ public class CircleCountdown : MonoBehaviour
 {
     [SerializeField] private GameObject countdownTimerObj;
     [SerializeField] private Image fillCircle;           // 拖入 Fill_Circle
-    [SerializeField] private TextMeshProUGUI timerText;  // 拖入 Timer_Text
     [SerializeField] private float totalTime = 0f;
 
-    public void StartCountdown(float t)     //外部接口，激活一个t秒的倒计时动画
+    [Header("颜色设置")]
+    [SerializeField] private Color normalColor = Color.green;    // 初始颜色
+    [SerializeField] private Color warningColor = Color.red;     // 警告颜色
+    [SerializeField] private float warningThreshold = 3f;        // 触发警告的时间阈值
+
+    private float remainingTime;
+
+    public void StartCountdown(float t)     // 外部接口，激活一个 t 秒的倒计时动画
     {
         totalTime = t;
         remainingTime = totalTime;
         fillCircle.fillAmount = 1f;  // 圆环满
-        fillCircle.color = Color.green;  // 圆环颜色恢复为绿色
+        fillCircle.color = normalColor;  // 使用配置的初始颜色
 
-        countdownTimerObj.SetActive(true);  // 显示倒计时UI
+        countdownTimerObj.SetActive(true);  // 显示倒计时 UI
     }
-
-    private float remainingTime;
 
     private void Start()
     {
@@ -36,16 +40,17 @@ public class CircleCountdown : MonoBehaviour
             // 更新圆环
             fillCircle.fillAmount = remainingTime / totalTime;
 
-            // 更新数字
-            timerText.text = Mathf.CeilToInt(remainingTime).ToString();
-
-            // 最后3秒变红
-            if (remainingTime <= 3f)
+            // 根据剩余时间切换颜色
+            if (remainingTime <= warningThreshold)
             {
-                fillCircle.color = Color.red;
+                fillCircle.color = warningColor;
+            }
+            else
+            {
+                fillCircle.color = normalColor;
             }
         }
-        else    //隐藏当前object，等下一次StartCountdown被调用
+        else    // 隐藏当前 object，等下一次 StartCountdown 被调用
         {
             countdownTimerObj.SetActive(false);
         }
