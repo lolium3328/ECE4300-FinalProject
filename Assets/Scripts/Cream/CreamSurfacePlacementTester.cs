@@ -43,7 +43,7 @@ public class CreamSurfacePlacementTester : MonoBehaviour
     [Header("Keyboard Controls")]
     [SerializeField] private float moveSpeed = 0.35f;
     [SerializeField] private KeyCode spawnKey = KeyCode.F;
-    [SerializeField] private KeyCode clearKey = KeyCode.Backspace;
+    [SerializeField] private KeyCode clearKey = KeyCode.M;
     [SerializeField] private float continuousSpawnInterval = 0.25f;
 
     private readonly List<GameObject> spawnedCream = new List<GameObject>();
@@ -98,6 +98,7 @@ public class CreamSurfacePlacementTester : MonoBehaviour
 
         if (Input.GetKeyDown(clearKey))
         {
+            Debug.Log("Clear key pressed, clearing spawned cream.", this);
             ClearSpawnedCream();
         }
     }
@@ -377,13 +378,16 @@ public class CreamSurfacePlacementTester : MonoBehaviour
         return true;
     }
 
-    private void ClearSpawnedCream()
+    public void ClearSpawnedCream()
     {
+        Debug.Log($"Clearing {spawnedCream.Count} spawned cream objects.", this);
         for (int i = spawnedCream.Count - 1; i >= 0; i--)
         {
+            Debug.Log($"Destroying spawned cream object at index {i}.", this);
             GameObject target = spawnedCream[i];
             if (target != null)
             {
+                Debug.Log($"Destroyed a cream object: {target.name}", this);
                 Destroy(target);
             }
         }

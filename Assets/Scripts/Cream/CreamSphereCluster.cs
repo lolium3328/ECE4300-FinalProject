@@ -71,7 +71,7 @@ public class CreamSphereCluster : MonoBehaviour
     [ContextMenu("Generate")]
     public void Generate()
     {
-        Clear();
+        // Clear();
 
         if (shape == ClusterShape.FluidJam)
         {
@@ -105,25 +105,45 @@ public class CreamSphereCluster : MonoBehaviour
         }
     }
 
-    [ContextMenu("Clear")]
-    public void Clear()
-    {
-        for (int i = generatedSpheres.Count - 1; i >= 0; i--)
-        {
-            DestroyGeneratedObject(generatedSpheres[i]);
-        }
+    // [ContextMenu("Clear")]
+    // public void Clear()     //销毁生成的球体和流体表面
+    // {
+    //     Debug.Log("Clearing CreamSphereCluster...");
+        
+    //     // 销毁已记录的生成对象
+    //     for (int i = generatedSpheres.Count - 1; i >= 0; i--)
+    //     {
+    //         if (generatedSpheres[i] != null)
+    //         {
+    //             DestroyGeneratedObject(generatedSpheres[i]);
+    //             Debug.Log($"Destroyed generated object: {generatedSpheres[i].name}");
+    //         }
+    //     }
+    //     generatedSpheres.Clear();
 
-        generatedSpheres.Clear();
+    //     // 销毁所有匹配名称的子对象（处理可能遗漏的对象）
+    //     // 重要：先收集所有要销毁的对象到列表中，再销毁
+    //     // 这样避免在销毁时childCount改变导致索引混乱
+    //     List<GameObject> childrenToDestroy = new List<GameObject>();
+    //     for (int i = 0; i < transform.childCount; i++)
+    //     {
+    //         Transform child = transform.GetChild(i);
+    //         if (child != null && (child.name.StartsWith("CreamSphere_") || child.name.StartsWith("CreamFluid_")))
+    //         {
+    //             childrenToDestroy.Add(child.gameObject);
+    //         }
+    //     }
 
-        for (int i = transform.childCount - 1; i >= 0; i--)
-        {
-            Transform child = transform.GetChild(i);
-            if (child != null && (child.name.StartsWith("CreamSphere_") || child.name.StartsWith("CreamFluid_")))
-            {
-                DestroyGeneratedObject(child.gameObject);
-            }
-        }
-    }
+    //     // 现在销毁收集到的对象
+    //     foreach (GameObject child in childrenToDestroy)
+    //     {
+    //         if (child != null)
+    //         {
+    //             DestroyGeneratedObject(child);
+    //             Debug.Log($"Destroyed child object: {child.name}");
+    //         }
+    //     }
+    // }
 
     private void GenerateFluidSurface()
     {

@@ -11,7 +11,7 @@ using TMPro;
 [System.Serializable]
 public class DialogueLine
 {
-    public string speakerName;  // 说话人的名字（显示在对话框上方）
+    //public string speakerName;  // 说话人的名字
     public Sprite avatar;       // 说话人的头像图片
     [TextArea(2, 5)]            // 让 Inspector 中的输入框显示多行
     public string content;      // 对话的文本内容
@@ -178,7 +178,7 @@ public class DialogueManager : MonoBehaviour
         // 创建一个临时的对话行并加入队列
         lineQueue.Enqueue(new DialogueLine
         {
-            speakerName = speaker,
+            //speakerName = speaker,
             content = content,
             avatar = avatar
         });
@@ -212,7 +212,7 @@ public class DialogueManager : MonoBehaviour
         DialogueLine line = lineQueue.Dequeue();
 
         // 更新说话人名字
-        nameText.text = line.speakerName;
+        //nameText.text = line.speakerName;
 
         // 更新头像（如果有的话）
         if (line.avatar != null)

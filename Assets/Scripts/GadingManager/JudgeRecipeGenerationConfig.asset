@@ -32,9 +32,9 @@ MonoBehaviour:
     required: 0
     minCount: 0
     maxCount: 1
-    weight: 3
+    weight: 0
   - prefabType: 5
-    required: 0
+    required: 1
     minCount: 0
     maxCount: 1
     weight: 3

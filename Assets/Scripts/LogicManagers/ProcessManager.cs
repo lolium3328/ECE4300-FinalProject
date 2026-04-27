@@ -18,6 +18,8 @@ public class ProcessManager : MonoBehaviour
     [SerializeField] private GestureSpawnSelector gestureSpawnSelector;    //手势放置控制器的引用，拖入HandSpawnController脚本所在的对象
     [SerializeField] private TriggerBoxJudge triggerBoxJudge;    //触发判定的引用，拖入TriggerBoxJudge脚本所在的对象
     [SerializeField] private CreamSurfacePlacementTester jamPlacementController;
+    [SerializeField] private CreamSphereCluster creamSphereCluster;
+    [SerializeField] private CreamSurfacePlacementTester creamSurfacePlacementTester;
 
     private int state = 1;
     /*
@@ -108,6 +110,9 @@ public class ProcessManager : MonoBehaviour
                 gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
                 placeMode = 0;    //切回默认禁用状态
                 SetJamInputEnabled(false);
+                creamSurfacePlacementTester.ClearSpawnedCream();   //切到准备状态时清空之前放置的cream
+                
+                
                 recipeRoundController.GenerateApplyAndJudge();   //生成本轮 recipe，并把同一份数据应用到 Judge
                 uiManager.TriggerEndFinishStateUI();   //如果上一个状态是结算分数，先隐藏结算UI
                 uiManager.TriggerReadyStateUI(recipeRoundController.CurrentRecipe);  //Ready UI 使用同一份 RuntimeJudgeRecipe 渲染菜单
