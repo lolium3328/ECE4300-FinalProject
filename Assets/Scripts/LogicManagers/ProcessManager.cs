@@ -20,6 +20,9 @@ public class ProcessManager : MonoBehaviour
     [SerializeField] private CreamSurfacePlacementTester jamPlacementController;
     [SerializeField] private CreamSphereCluster creamSphereCluster;
     [SerializeField] private CreamSurfacePlacementTester creamSurfacePlacementTester;
+    /// <summary>面向接口的反馈访问入口；走单例 FeedbackController.Instance，跨场景生效。后续要换实现只改本属性 getter。</summary>
+    private IFeedbackController Feedback { get { return FeedbackController.Instance; } }
+
 
     private int state = 1;
     /*
@@ -69,6 +72,7 @@ public class ProcessManager : MonoBehaviour
         SetJamInputEnabled(false);
 
         // 启动完整对话序列
+        if (Feedback != null) Feedback.ApplyStage1_Intro();
         dialogueManager.StartDialogue(Dialogue1, 
             () => { Debug.Log("对话完成！"); }
 );
@@ -104,6 +108,7 @@ public class ProcessManager : MonoBehaviour
                 placeMode = 0;    //切回默认禁用状态
                 SetJamInputEnabled(false);
                 Debug.LogWarning("状态1不应该被切换函数切换到！");
+                if (Feedback != null) Feedback.ApplyStage1_Intro();
                 break;
             case 2:
                 Debug.Log("switch to state 2");
@@ -116,6 +121,7 @@ public class ProcessManager : MonoBehaviour
                 recipeRoundController.GenerateApplyAndJudge();   //生成本轮 recipe，并把同一份数据应用到 Judge
                 uiManager.TriggerEndFinishStateUI();   //如果上一个状态是结算分数，先隐藏结算UI
                 uiManager.TriggerReadyStateUI(recipeRoundController.CurrentRecipe);  //Ready UI 使用同一份 RuntimeJudgeRecipe 渲染菜单
+                if (Feedback != null) Feedback.ApplyStage2_Topic();
                 //动画放完后UIManager会调用ProcessManager.SwitchToNextState()来切换状态
                 break;
             case 3:
@@ -126,6 +132,7 @@ public class ProcessManager : MonoBehaviour
                 countdownTimer.StartCountdown(15f);   //激活倒计时动画
                 StartCoroutine(WaitAndSwitch(15f, 3));    //放置松饼状态启动等待协程
                 uiManager.TriggerPlacePancakeUI();   //激活放置松饼的UI提示
+                if (Feedback != null) Feedback.ApplyStage345_Cooking();
                 break;
             case 4:
                 Debug.Log("switch to state 4");
@@ -135,6 +142,7 @@ public class ProcessManager : MonoBehaviour
                 StartCoroutine(WaitAndSwitch(15f, 4));    //放果酱状态启动等待协程
                 uiManager.TriggerEndPlacePancakeUI();  //放置松饼的UI提示关闭
                 uiManager.TriggerPlaceJamUI();   //激活放置果酱的UI提示
+                if (Feedback != null) Feedback.ApplyStage345_Cooking();
                 break;
             case 5:
                 gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
@@ -147,6 +155,7 @@ public class ProcessManager : MonoBehaviour
                 StartCoroutine(WaitAndSwitch(15f, 5));    //放topping状态启动等待协程
                 uiManager.TriggerEndPlaceJamUI();   //放置果酱的UI提示关闭
                 uiManager.TriggerPlaceToppingUI();    //激活放置topping
+                if (Feedback != null) Feedback.ApplyStage345_Cooking();
                 break;
             case 6:
                 uiManager.EndChooseToppingHint();   //结束放置topping的UI提示,如果还没结束
@@ -159,6 +168,7 @@ public class ProcessManager : MonoBehaviour
                 triggerBoxJudge.JudgeNow();   //触发判定
                 score = (int)triggerBoxJudge.LastTotalScore;    //获取分数,并转成int类型
                 countdownTimer.StartCountdown(0f);   //如果上一个状态提前结束，主动隐藏倒计时UI
+                if (Feedback != null) Feedback.ApplyStage6_Result(score);
                 if (score >= 80)   //根据分数调整结算对话，划分分数等级触发不一样的对话
                 {
                     dialogueManager.StartDialogue(Dialogue2, 
@@ -184,6 +194,7 @@ public class ProcessManager : MonoBehaviour
                 SetJamInputEnabled(false);
                 //UI显示分数
                 uiManager.TriggerFinishStateUI();
+                if (Feedback != null) Feedback.ApplyStage7_Wait();
                 //可以打断当前结算对话，直接进入下一轮
                 Debug.Log("switch to state 7");
                 break;

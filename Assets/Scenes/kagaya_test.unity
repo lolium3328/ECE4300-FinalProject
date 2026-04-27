@@ -240,6 +240,65 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 0
+--- !u!1 &724650994
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 724650996}
+  - component: {fileID: 724650995}
+  m_Layer: 0
+  m_Name: FeedbackController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &724650995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 724650994}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 836526a7b24832a4193aaae442fa5f03, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dontDestroyOnLoad: 0
+  faceRenderer: {fileID: 1312241602}
+  matDefault: {fileID: 2100000, guid: 026d981d897bbfe4983c5564bca67b3c, type: 2}
+  matHappy: {fileID: 2100000, guid: 13b08d05503dd0143a1c2af48f2e3082, type: 2}
+  matSuperHappy: {fileID: 2100000, guid: 915b97c5a7bceb846b7333f348b7f6a4, type: 2}
+  matSad: {fileID: 2100000, guid: 2f3f877b1794d444fb04a3ac5782de39, type: 2}
+  matAngry: {fileID: 2100000, guid: d171b306b5eafae45812cce7d1fde59f, type: 2}
+  characterAnimator: {fileID: 1992165145}
+  stateExcited: Armature|Excited
+  stateCheer: Armature|Cheer
+  stateHappy: Armature|Happy
+  stateSad: Armature|Sad
+  statePickup: Armature|Pickup
+  stateWalk: Armature|Walk
+  crossfadeDuration: 0.15
+--- !u!4 &724650996
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 724650994}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &1312241602 stripped
 MeshRenderer:
   m_CorrespondingSourceObject: {fileID: -7077146328180228088, guid: d439b506964ff2546a31bb310ba9dfcc,
@@ -268,19 +327,18 @@ MonoBehaviour:
   faceSkinnedRenderer: {fileID: 0}
   faceMeshRenderer: {fileID: 1312241602}
   faceMaterialIndex: 0
-  defaultAnimation: Happy
-  defaultExpression: Default
+  defaultAnimation: Armature|Happy
+  defaultExpression: Happy
   animationWhitelist:
-  - Happy
-  - Idle
-  - Walk
-  - Run
-  - Jump
-  - Attack
-  - Hit
-  - Death
-  - Skill
-  - Angry
+  - Armature|Angry
+  - Armature|Cheer
+  - Armature|Excited
+  - Armature|Happy
+  - Armature|mixamo_com
+  - Armature|Pickup
+  - Armature|Sad
+  - Armature|Tpose
+  - Armature|Walk
   triggerWhitelist:
   - Action
   expressionMaterials:
@@ -327,6 +385,7 @@ GameObject:
   - component: {fileID: 2088413551}
   - component: {fileID: 2088413550}
   - component: {fileID: 2088413549}
+  - component: {fileID: 2088413552}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -352,7 +411,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -408,6 +467,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2088413552
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2088413548}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_Version: 2
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
 --- !u!1001 &2139738780
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -419,17 +522,17 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: d439b506964ff2546a31bb310ba9dfcc,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -0.035
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d439b506964ff2546a31bb310ba9dfcc,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0
+      value: -0.086
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d439b506964ff2546a31bb310ba9dfcc,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 2.386
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d439b506964ff2546a31bb310ba9dfcc,
         type: 3}
@@ -516,3 +619,4 @@ SceneRoots:
   - {fileID: 2088413551}
   - {fileID: 368055529}
   - {fileID: 2139738780}
+  - {fileID: 724650996}
