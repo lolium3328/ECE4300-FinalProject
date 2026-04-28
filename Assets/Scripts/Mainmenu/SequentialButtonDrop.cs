@@ -11,9 +11,9 @@ public class SequentialButtonDrop : MonoBehaviour
     [Header("Drop Motion")]
     [SerializeField] private bool useLocalPosition = true;
     [SerializeField] private Vector3 startOffset = new Vector3(0f, 3f, 0f);
-    [SerializeField] private float firstDelay = 0.15f;
-    [SerializeField] private float delayBetweenButtons = 0.18f;
-    [SerializeField] private float dropDuration = 0.55f;
+    [SerializeField] private float firstDelay = 0.50f;
+    [SerializeField] private float delayBetweenButtons = 0.60f;
+    [SerializeField] private float dropDuration = 0.60f;
     [SerializeField] private AnimationCurve dropCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
     [Header("Landing Feedback")]
@@ -23,7 +23,6 @@ public class SequentialButtonDrop : MonoBehaviour
 
     private Coroutine playRoutine;
     private Vector3[] targetPositions;
-    private bool positionsCached;
 
     private void Awake()
     {
@@ -49,20 +48,9 @@ public class SequentialButtonDrop : MonoBehaviour
         }
 
         RefreshTargets();
-        if (!positionsCached || targetPositions == null || targetPositions.Length != buttons.Length)
-        {
-            CacheCurrentPositions();
-        }
-
+        CacheCurrentPositions();
         MoveTargetsToDropStart();
         playRoutine = StartCoroutine(PlayDropSequence());
-    }
-
-    [ContextMenu("Recache Current Positions")]
-    public void RecacheCurrentPositions()
-    {
-        RefreshTargets();
-        CacheCurrentPositions();
     }
 
     private void RefreshTargets()
@@ -97,8 +85,6 @@ public class SequentialButtonDrop : MonoBehaviour
 
             targetPositions[i] = GetPosition(buttons[i]);
         }
-
-        positionsCached = true;
     }
 
     private void MoveTargetsToDropStart()
