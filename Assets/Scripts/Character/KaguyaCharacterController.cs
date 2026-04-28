@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 /// <summary>
 /// 角色动作与表情控制脚本。
@@ -498,5 +501,30 @@ public class KaguyaCharacterController : MonoBehaviour
         {
             Debug.LogWarning("[KaguyaCharacterController] " + message, this);
         }
+    }
+
+    [ContextMenu("Force Reset Whitelist & Defaults")]
+    private void ForceResetDefaults()
+    {
+        animationWhitelist = new List<string>
+        {
+            "Armature|Angry", "Armature|Cheer", "Armature|Excited", "Armature|Happy", "Armature|mixamo_com", "Armature|Pickup", "Armature|Sad", "Armature|Tpose", "Armature|Walk"
+        };
+        defaultAnimation = "Armature|Happy";
+        defaultExpression = "Happy";
+
+#if UNITY_EDITOR
+        // 标记为 dirty，确保 Ctrl+S 时数据真正写入 scene/prefab 文件，避免发行版打包到旧值。
+        EditorUtility.SetDirty(this);
+        if (!Application.isPlaying)
+        {
+            UnityEngine.SceneManagement.Scene scene = gameObject.scene;
+            if (scene.IsValid() && scene.isLoaded)
+            {
+                UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
+            }
+        }
+#endif
+        Debug.Log("动作白名单和默认设置已强制刷新为代码最新版本！");
     }
 }
