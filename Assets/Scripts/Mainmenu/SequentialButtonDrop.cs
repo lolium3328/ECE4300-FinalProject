@@ -23,11 +23,12 @@ public class SequentialButtonDrop : MonoBehaviour
 
     private Coroutine playRoutine;
     private Vector3[] targetPositions;
+    private bool hasCachedTargetPositions;
 
     private void Awake()
     {
         RefreshTargets();
-        CacheCurrentPositions();
+        CacheCurrentPositions(force: true);
         MoveTargetsToDropStart();
     }
 
@@ -48,7 +49,7 @@ public class SequentialButtonDrop : MonoBehaviour
         }
 
         RefreshTargets();
-        CacheCurrentPositions();
+        CacheCurrentPositions(force: false);
         MoveTargetsToDropStart();
         playRoutine = StartCoroutine(PlayDropSequence());
     }
@@ -72,8 +73,13 @@ public class SequentialButtonDrop : MonoBehaviour
         }
     }
 
-    private void CacheCurrentPositions()
+    private void CacheCurrentPositions(bool force)
     {
+        if (!force && hasCachedTargetPositions && targetPositions != null && targetPositions.Length == buttons.Length)
+        {
+            return;
+        }
+
         targetPositions = new Vector3[buttons.Length];
 
         for (int i = 0; i < buttons.Length; i++)
@@ -85,6 +91,8 @@ public class SequentialButtonDrop : MonoBehaviour
 
             targetPositions[i] = GetPosition(buttons[i]);
         }
+
+        hasCachedTargetPositions = true;
     }
 
     private void MoveTargetsToDropStart()
@@ -159,11 +167,22 @@ public class SequentialButtonDrop : MonoBehaviour
 
     private Vector3 GetPosition(Transform target)
     {
+        if (useLocalPosition && target is RectTransform rectTransform)
+        {
+            return rectTransform.anchoredPosition3D;
+        }
+
         return useLocalPosition ? target.localPosition : target.position;
     }
 
     private void SetPosition(Transform target, Vector3 position)
     {
+        if (useLocalPosition && target is RectTransform rectTransform)
+        {
+            rectTransform.anchoredPosition3D = position;
+            return;
+        }
+
         if (useLocalPosition)
         {
             target.localPosition = position;
