@@ -62,6 +62,42 @@ public class UIManager : MonoBehaviour
         readyCoroutine = StartCoroutine(ReadyStateUI(recipe));
     }
 
+    public void ForceSwitchToNextState()
+    {
+        if (ProcessManager.Instance != null && ProcessManager.Instance.State == 2)
+        {
+            return;
+        }
+
+        if (readyCoroutine != null)
+        {
+            StopCoroutine(readyCoroutine);
+            readyCoroutine = null;
+        }
+
+        if (finishCoroutine != null)
+        {
+            StopCoroutine(finishCoroutine);
+            finishCoroutine = null;
+        }
+
+        SetActiveIfAssigned(readyUI, false);
+        HideReadyRecipeUI();
+        SetActiveIfAssigned(ready_text, false);
+        SetActiveIfAssigned(cook_text, false);
+        SetActiveIfAssigned(finishUI, false);
+        SetActiveIfAssigned(score_text, false);
+        SetActiveIfAssigned(placePancakeUI, false);
+        SetActiveIfAssigned(placeJamUI, false);
+        SetActiveIfAssigned(placeToppingUI, false);
+        SetActiveIfAssigned(chooseToppingHintUI, false);
+
+        if (ProcessManager.Instance != null)
+        {
+            ProcessManager.Instance.SwitchToNextState();
+        }
+    }
+
     private IEnumerator ReadyStateUI(RuntimeJudgeRecipe recipe)
     {
         yield return new WaitForSeconds(0.5f);

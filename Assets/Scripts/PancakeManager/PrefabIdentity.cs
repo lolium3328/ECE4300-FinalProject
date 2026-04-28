@@ -3,11 +3,14 @@ using UnityEngine;
 public enum PrefabType
 {
     Pancake = 0,
-    Fruit = 1,
+    Strawberry = 1,
     Topping = 2,
     Cream1 = 3,
     Syrup = 4,
-    Cream2 = 5
+    Cream2 = 5,
+    Cherry = 6,
+    Blueberry = 7
+
 }
 
 [DisallowMultipleComponent]

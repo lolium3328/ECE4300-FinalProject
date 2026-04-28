@@ -107,11 +107,17 @@ public static class RandomRecipeGenerator
 
         Dictionary<PrefabType, int> counts = new Dictionary<PrefabType, int>();
         int currentTotal = 0;
+        RecipeGenerationRule selectedFruitRule = SelectExclusiveFruitRule(usableRules);
 
         for (int i = 0; i < usableRules.Count; i++)
         {
             RecipeGenerationRule rule = usableRules[i];
-            if (!rule.required)
+            if (IsFruitChoice(rule.prefabType) && rule != selectedFruitRule)
+            {
+                continue;
+            }
+
+            if (!rule.required && rule != selectedFruitRule)
             {
                 continue;
             }
@@ -158,7 +164,7 @@ public static class RandomRecipeGenerator
         for (int i = 0; i < usableRules.Count; i++)
         {
             RecipeGenerationRule rule = usableRules[i];
-            if (IsBlockedByExclusiveCreamSelection(rule.prefabType, counts))
+            if (IsBlockedByExclusiveSelection(rule.prefabType, counts))
             {
                 continue;
             }
@@ -216,11 +222,17 @@ public static class RandomRecipeGenerator
     private static RuntimeJudgeRecipe BuildFallbackRecipe(JudgeRecipeGenerationConfig config, List<RecipeGenerationRule> usableRules)
     {
         Dictionary<PrefabType, int> counts = new Dictionary<PrefabType, int>();
+        RecipeGenerationRule selectedFruitRule = SelectExclusiveFruitRule(usableRules);
 
         for (int i = 0; i < usableRules.Count; i++)
         {
             RecipeGenerationRule rule = usableRules[i];
-            if (!rule.required)
+            if (IsFruitChoice(rule.prefabType) && rule != selectedFruitRule)
+            {
+                continue;
+            }
+
+            if (!rule.required && rule != selectedFruitRule)
             {
                 continue;
             }
@@ -271,22 +283,77 @@ public static class RandomRecipeGenerator
         return new RuntimeJudgeRecipe(recipeId, displayName, config.RejectUnexpectedTypes, requirements);
     }
 
-    private static bool IsBlockedByExclusiveCreamSelection(PrefabType prefabType, Dictionary<PrefabType, int> counts)
+    private static RecipeGenerationRule SelectExclusiveFruitRule(List<RecipeGenerationRule> usableRules)
     {
-        if (!IsCreamChoice(prefabType))
+        List<RecipeGenerationRule> fruitRules = new List<RecipeGenerationRule>();
+        int totalWeight = 0;
+
+        for (int i = 0; i < usableRules.Count; i++)
         {
-            return false;
+            RecipeGenerationRule rule = usableRules[i];
+            if (rule == null || !IsFruitChoice(rule.prefabType))
+            {
+                continue;
+            }
+
+            fruitRules.Add(rule);
+            totalWeight += Mathf.Max(1, rule.weight);
         }
 
-        bool hasCream1 = counts.TryGetValue(PrefabType.Cream1, out int cream1Count) && cream1Count > 0;
-        bool hasCream2 = counts.TryGetValue(PrefabType.Cream2, out int cream2Count) && cream2Count > 0;
+        if (fruitRules.Count == 0)
+        {
+            return null;
+        }
 
-        return (prefabType == PrefabType.Cream1 && hasCream2) || (prefabType == PrefabType.Cream2 && hasCream1);
+        int roll = UnityEngine.Random.Range(0, totalWeight);
+        int cumulative = 0;
+
+        for (int i = 0; i < fruitRules.Count; i++)
+        {
+            cumulative += Mathf.Max(1, fruitRules[i].weight);
+            if (roll < cumulative)
+            {
+                return fruitRules[i];
+            }
+        }
+
+        return fruitRules[fruitRules.Count - 1];
+    }
+
+    private static bool IsBlockedByExclusiveSelection(PrefabType prefabType, Dictionary<PrefabType, int> counts)
+    {
+        if (IsCreamChoice(prefabType))
+        {
+            bool hasCream1 = counts.TryGetValue(PrefabType.Cream1, out int cream1Count) && cream1Count > 0;
+            bool hasCream2 = counts.TryGetValue(PrefabType.Cream2, out int cream2Count) && cream2Count > 0;
+
+            return (prefabType == PrefabType.Cream1 && hasCream2) || (prefabType == PrefabType.Cream2 && hasCream1);
+        }
+
+        if (IsFruitChoice(prefabType))
+        {
+            bool hasStrawberry = counts.TryGetValue(PrefabType.Strawberry, out int strawberryCount) && strawberryCount > 0;
+            bool hasCherry = counts.TryGetValue(PrefabType.Cherry, out int cherryCount) && cherryCount > 0;
+            bool hasBlueberry = counts.TryGetValue(PrefabType.Blueberry, out int blueberryCount) && blueberryCount > 0;
+
+            return (prefabType != PrefabType.Strawberry && hasStrawberry)
+                || (prefabType != PrefabType.Cherry && hasCherry)
+                || (prefabType != PrefabType.Blueberry && hasBlueberry);
+        }
+
+        return false;
     }
 
     private static bool IsCreamChoice(PrefabType prefabType)
     {
         return prefabType == PrefabType.Cream1 || prefabType == PrefabType.Cream2;
+    }
+
+    private static bool IsFruitChoice(PrefabType prefabType)
+    {
+        return prefabType == PrefabType.Strawberry
+            || prefabType == PrefabType.Cherry
+            || prefabType == PrefabType.Blueberry;
     }
 
     private static string BuildDisplayName(string prefix, List<JudgeRequirementEntry> requirements)
