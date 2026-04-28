@@ -168,24 +168,24 @@ public class ProcessManager : MonoBehaviour
                 triggerBoxJudge.JudgeNow();   //触发判定
                 score = (int)triggerBoxJudge.LastTotalScore;    //获取分数,并转成int类型
                 countdownTimer.StartCountdown(0f);   //如果上一个状态提前结束，主动隐藏倒计时UI
-                if (Feedback != null) Feedback.ApplyStage6_Result(score);
-                if (score >= 80)   //根据分数调整结算对话，划分分数等级触发不一样的对话
+                // 先播一遍 Pickup 端起来评估的动作，播完后再切结算反馈 + 启动对话
+                int finalScore = score;   // 闭包捕获
+                System.Action onResultBegin = () =>
                 {
-                    dialogueManager.StartDialogue(Dialogue2, 
-                    () => { Debug.Log("结算对话完成！"); }
-                    );
-                }
-                else if (score >= 50)
+                    DialogueData dlg;
+                    if (finalScore >= 80) dlg = Dialogue2;
+                    else if (finalScore >= 50) dlg = Dialogue3;
+                    else dlg = Dialogue4;
+                    dialogueManager.StartDialogue(dlg, () => { Debug.Log("结算对话完成！"); });
+                };
+                if (Feedback != null)
                 {
-                    dialogueManager.StartDialogue(Dialogue3, 
-                    () => { Debug.Log("结算对话完成！"); }
-                    );
+                    Feedback.ApplyStage6_PickupThenResult(score, onResultBegin);
                 }
                 else
                 {
-                    dialogueManager.StartDialogue(Dialogue4, 
-                    () => { Debug.Log("结算对话完成！"); }
-                    );
+                    // 没有反馈控制器时直接启动对话，避免流程卡死
+                    onResultBegin.Invoke();
                 }
                 break;
             case 7:
@@ -194,7 +194,7 @@ public class ProcessManager : MonoBehaviour
                 SetJamInputEnabled(false);
                 //UI显示分数
                 uiManager.TriggerFinishStateUI();
-                if (Feedback != null) Feedback.ApplyStage7_Wait();
+                if (Feedback != null) Feedback.ApplyStage7_Wait(score);
                 //可以打断当前结算对话，直接进入下一轮
                 Debug.Log("switch to state 7");
                 break;

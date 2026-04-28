@@ -21,6 +21,13 @@ public interface IFeedbackController
     /// <param name="score">本轮分数（0-100）。</param>
     void ApplyStage6_Result(int score);
 
-    /// <summary>Stage 7 等待下一轮。</summary>
-    void ApplyStage7_Wait();
+    /// <summary>Stage 6 进阶版：先播一遍 Pickup 动作（不循环），结束后再切到分数对应的结算反馈。
+    /// 整个过程异步推进，调用方可通过 onResultBegin 回调在结算反馈生效那一刻同步触发对话等其它行为。</summary>
+    /// <param name="score">本轮分数（0-100）。</param>
+    /// <param name="onResultBegin">Pickup 动作播完、刚切到结算反馈时触发；可为 null。</param>
+    void ApplyStage6_PickupThenResult(int score, System.Action onResultBegin);
+
+    /// <summary>Stage 7 等待下一轮：根据上一轮分数决定反馈细节（低分会切到 Angry 等待）。</summary>
+    /// <param name="lastScore">上一轮的分数（即刚结算完的那一轮）；初始进入时可传任意 ≥50 的值（如 60）。</param>
+    void ApplyStage7_Wait(int lastScore);
 }

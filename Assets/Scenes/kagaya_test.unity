@@ -278,12 +278,14 @@ MonoBehaviour:
   matAngry: {fileID: 2100000, guid: d171b306b5eafae45812cce7d1fde59f, type: 2}
   characterAnimator: {fileID: 1992165145}
   stateExcited: Armature|Excited
+  stateAngry: Armature|Angry
   stateCheer: Armature|Cheer
   stateHappy: Armature|Happy
   stateSad: Armature|Sad
   statePickup: Armature|Pickup
   stateWalk: Armature|Walk
   crossfadeDuration: 0.15
+  pickupSettleDelay: 2.3
 --- !u!4 &724650996
 Transform:
   m_ObjectHideFlags: 0
@@ -587,7 +589,7 @@ PrefabInstance:
     - target: {fileID: -2371214232444002463, guid: d439b506964ff2546a31bb310ba9dfcc,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.30752683
+      value: 0.315
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: d439b506964ff2546a31bb310ba9dfcc,
         type: 3}
