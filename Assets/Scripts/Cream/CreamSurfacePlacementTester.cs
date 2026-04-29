@@ -81,27 +81,27 @@ public class CreamSurfacePlacementTester : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        if (!inputEnabled)
-        {
-            return;
-        }
+    // private void Update()
+    // {
+    //     if (!inputEnabled)
+    //     {
+    //         return;
+    //     }
 
-        MoveCursorFromKeyboard();
-        UpdatePlacementCursor();
+    //     MoveCursorFromKeyboard();
+    //     UpdatePlacementCursor();
 
-        if (Input.GetKey(spawnKey))
-        {
-            SpawnCreamAtCurrentSurfaceWithInterval();
-        }
+    //     if (Input.GetKey(spawnKey))
+    //     {
+    //         SpawnCreamAtCurrentSurfaceWithInterval();
+    //     }
 
-        if (Input.GetKeyDown(clearKey))
-        {
-            Debug.Log("Clear key pressed, clearing spawned cream.", this);
-            ClearSpawnedCream();
-        }
-    }
+    //     if (Input.GetKeyDown(clearKey))
+    //     {
+    //         Debug.Log("Clear key pressed, clearing spawned cream.", this);
+    //         ClearSpawnedCream();
+    //     }
+    // }
 
     private void EnsureLeapProvider()
     {

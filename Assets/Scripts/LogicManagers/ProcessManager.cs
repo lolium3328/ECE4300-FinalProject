@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class ProcessManager : MonoBehaviour
@@ -23,6 +24,7 @@ public class ProcessManager : MonoBehaviour
     /// <summary>面向接口的反馈访问入口；走单例 FeedbackController.Instance，跨场景生效。后续要换实现只改本属性 getter。</summary>
     private IFeedbackController Feedback { get { return FeedbackController.Instance; } }
 
+    private bool switchEnable = true;
 
     private int state = 1;
     /*
@@ -95,7 +97,13 @@ public class ProcessManager : MonoBehaviour
     public void SwitchToNextState()
     //流程管理里处理状态切换的全局接口，供其他脚本调用
     {
-        state++;
+        if (switchEnable){
+            state++;
+        }
+        else
+        {
+            return;
+        }
         if (state > 7)
         {
             state = 2;    //循环回到状态2，开始下一轮
@@ -118,7 +126,7 @@ public class ProcessManager : MonoBehaviour
                 creamSurfacePlacementTester.ClearSpawnedCream();   //切到准备状态时清空之前放置的cream
                 
                 
-                recipeRoundController.GenerateApplyAndJudge();   //生成本轮 recipe，并把同一份数据应用到 Judge
+                recipeRoundController.GenerateAndApplyRecipe();   //生成本轮 recipe，并把同一份数据应用到 Judge
                 uiManager.TriggerEndFinishStateUI();   //如果上一个状态是结算分数，先隐藏结算UI
                 uiManager.TriggerReadyStateUI(recipeRoundController.CurrentRecipe);  //Ready UI 使用同一份 RuntimeJudgeRecipe 渲染菜单
                 if (Feedback != null) Feedback.ApplyStage2_Topic();
@@ -192,11 +200,14 @@ public class ProcessManager : MonoBehaviour
                 gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
                 placeMode = 0;    //切回默认禁用状态
                 SetJamInputEnabled(false);
+                switchEnable = false;
+                Debug.Log("switch to state 7");
                 //UI显示分数
                 uiManager.TriggerFinishStateUI();
+                StartCoroutine(WaitAndEnable(1f));
+
                 if (Feedback != null) Feedback.ApplyStage7_Wait(score);
                 //可以打断当前结算对话，直接进入下一轮
-                Debug.Log("switch to state 7");
                 break;
         }
     }
@@ -208,6 +219,12 @@ public class ProcessManager : MonoBehaviour
         {
             SwitchToNextState();
         }   
+    }
+
+    private IEnumerator WaitAndEnable(float waitTime)
+    {
+        yield return new WaitForSeconds(waitTime);
+        switchEnable = true;
     }
 
     public bool IsProhibitedMode()

@@ -53,29 +53,29 @@ public class InputManager : MonoBehaviour
             }
         }
 
-        //按下 0 切换到禁用状态 (PlaceMode 0: 禁用动作)
-        if (Input.GetKeyDown(KeyCode.Alpha0) || Input.GetKeyDown(KeyCode.Keypad0))
-        {
-            ProcessManager.Instance.SetPlacementMode(0);
-            gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
-            Debug.Log("Switched to Place Mode 0: Disabled");
-        }
+        // //按下 0 切换到禁用状态 (PlaceMode 0: 禁用动作)
+        // if (Input.GetKeyDown(KeyCode.Alpha0) || Input.GetKeyDown(KeyCode.Keypad0))
+        // {
+        //     ProcessManager.Instance.SetPlacementMode(0);
+        //     gestureSpawnSelector.ApplyRecognizedLabel("C");     //预设为空物体
+        //     Debug.Log("Switched to Place Mode 0: Disabled");
+        // }
 
-        // 按下 1 切换到放置状态 (PlaceMode 1: 放置松饼)
-        if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
-        {
-            ProcessManager.Instance.SetPlacementMode(1);
-            Debug.Log("Switched to Place Mode 1: Placement");
-        }
+        // // 按下 1 切换到放置状态 (PlaceMode 1: 放置松饼)
+        // if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
+        // {
+        //     ProcessManager.Instance.SetPlacementMode(1);
+        //     Debug.Log("Switched to Place Mode 1: Placement");
+        // }
 
-        // 按下 2 切换到写/手势识别状态 (State 2: 放果酱)
-        if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2))
-        {
-            ProcessManager.Instance.SetPlacementMode(2);
-            Debug.Log("Switched to Place Mode 2: Gesture Recognition");
-        }
+        // // 按下 2 切换到写/手势识别状态 (State 2: 放果酱)
+        // if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2))
+        // {
+        //     ProcessManager.Instance.SetPlacementMode(2);
+        //     Debug.Log("Switched to Place Mode 2: Gesture Recognition");
+        // }
 
-        if (Input.GetKeyDown(KeyCode.S))
+        if (Input.GetKeyDown(KeyCode.S) && ProcessManager.Instance.IsPlacementMode())
         {
             handSpawnController.SpawnAtCurrentPoint();
         }
@@ -84,6 +84,16 @@ public class InputManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.W) && ProcessManager.Instance.IsGestureMode())
         {
             gestureSpawnSelector.ApplyRecognizedLabel("1");     //切到草莓预设
+        }
+
+        if (Input.GetKeyDown(KeyCode.A) && ProcessManager.Instance.IsGestureMode())
+        {
+            gestureSpawnSelector.ApplyRecognizedLabel("blueberry");     //切到蓝莓预设
+        }
+
+        if (Input.GetKeyDown(KeyCode.D) && ProcessManager.Instance.IsGestureMode())
+        {
+            gestureSpawnSelector.ApplyRecognizedLabel("cherry");     //切到樱桃预设
         }
 
         // if (Input.GetKeyDown(KeyCode.S) && ProcessManager.Instance.IsGestureMode())
