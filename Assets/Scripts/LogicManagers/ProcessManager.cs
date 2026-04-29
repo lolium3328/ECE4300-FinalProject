@@ -21,6 +21,8 @@ public class ProcessManager : MonoBehaviour
     [SerializeField] private CreamSurfacePlacementTester jamPlacementController;
     [SerializeField] private CreamSphereCluster creamSphereCluster;
     [SerializeField] private CreamSurfacePlacementTester creamSurfacePlacementTester;
+    [SerializeField] private ScoreManager scoreManager;
+
     /// <summary>面向接口的反馈访问入口；走单例 FeedbackController.Instance，跨场景生效。后续要换实现只改本属性 getter。</summary>
     private IFeedbackController Feedback { get { return FeedbackController.Instance; } }
 
@@ -38,7 +40,8 @@ public class ProcessManager : MonoBehaviour
     7：结算分数/等待下一轮
     */
     private float timer = 0f;
-    private int score = 60;    //分数，暂时没用到，后续可以根据制作的松饼质量来调整分数
+    private int score = 0;    //分数，暂时没用到，后续可以根据制作的松饼质量来调整分数
+    private int highestScore = 0;
     private int placeMode = 0;
     // 0: 禁用动作, 1: 放置(Spawn), 2: 手势/写(Gesture/Writing)
 
@@ -52,6 +55,12 @@ public class ProcessManager : MonoBehaviour
     {
         get { return score; }
         set { score = value; }
+    }
+
+    public int HighestScore
+    {
+        get { return highestScore; }
+        set { highestScore = value; }
     }
 
     private void Awake()    //确保只有一个实例存在
@@ -175,6 +184,9 @@ public class ProcessManager : MonoBehaviour
 
                 triggerBoxJudge.JudgeNow();   //触发判定
                 score = (int)triggerBoxJudge.LastTotalScore;    //获取分数,并转成int类型
+                scoreManager.UpdateHighScore(score);
+                highestScore = scoreManager.GetHighestScore();
+
                 countdownTimer.StartCountdown(0f);   //如果上一个状态提前结束，主动隐藏倒计时UI
                 // 先播一遍 Pickup 端起来评估的动作，播完后再切结算反馈 + 启动对话
                 int finalScore = score;   // 闭包捕获

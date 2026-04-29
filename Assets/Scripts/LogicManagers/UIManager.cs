@@ -19,6 +19,8 @@ public class UIManager : MonoBehaviour
     [Header("Finish State")]
     [SerializeField] private GameObject finishUI;
     [SerializeField] private TextMeshProUGUI score_text;
+    [SerializeField] private TextMeshProUGUI Hscore_text;
+    [SerializeField] private TextMeshProUGUI NewRecord;
 
     [Header("Placement Hints")]
     [SerializeField] private GameObject placePancakeUI;
@@ -137,12 +139,26 @@ public class UIManager : MonoBehaviour
             StopCoroutine(finishCoroutine);
         }
 
-        SetActiveIfAssigned(finishUI, true);
-        SetActiveIfAssigned(score_text, false);
-
         if (score_text != null && ProcessManager.Instance != null)
         {
             score_text.text = ProcessManager.Instance.Score.ToString();
+        }
+        if (Hscore_text != null && ProcessManager.Instance != null)
+        {
+            Hscore_text.text = ProcessManager.Instance.HighestScore.ToString();
+        }
+
+        SetActiveIfAssigned(finishUI, true);
+        SetActiveIfAssigned(score_text, false);
+        SetActiveIfAssigned(Hscore_text,true);
+
+        if (score_text.text == Hscore_text.text)
+        {
+            SetActiveIfAssigned(NewRecord,true);
+        }
+        else
+        {
+            SetActiveIfAssigned(NewRecord,false);
         }
 
         finishCoroutine = StartCoroutine(FinishStateUI());
@@ -158,6 +174,7 @@ public class UIManager : MonoBehaviour
 
         SetActiveIfAssigned(score_text, false);
         SetActiveIfAssigned(finishUI, false);
+        SetActiveIfAssigned(NewRecord,false);
     }
 
     private IEnumerator FinishStateUI()
