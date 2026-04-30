@@ -4,28 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-// 单行对话数据结构
-// 用来存储一句对话的所有信息：说话人、头像、文本内容
-// [System.Serializable] 让 Unity 能在 Inspector 中编辑这个类
-// </summary>
-[System.Serializable]
-public class DialogueLine
-{
-    //public string speakerName;  // 说话人的名字
-    public Sprite avatar;       // 说话人的头像图片
-    [TextArea(2, 5)]            // 让 Inspector 中的输入框显示多行
-    public string content;      // 对话的文本内容
-}
-
-// 对话数据资源文件（可以保存成 .asset 文件）
-// 用来存储一整个对话序列（多句对话）
-// [CreateAssetMenu] 让你能在 Project 窗口右键创建这个资源
-[CreateAssetMenu(menuName = "Dialogue/DialogueData")]
-public class DialogueData : ScriptableObject
-{
-    public List<DialogueLine> lines;  // 对话列表，可以有多句
-}
-
 // 对话管理器 - 负责显示和控制游戏中的对话
 // 
 // 功能：
@@ -54,7 +32,7 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] private float typingSpeed = 0.05f;  // 打字速度，每个字显示的时间（秒）
 
     // ========== 内部状态变量 ==========
-    private Queue<DialogueLine> lineQueue = new Queue<DialogueLine>();  // 对话队列，存储待显示的对话
+    private Queue<DialogueEntry> lineQueue = new Queue<DialogueEntry>();  // 对话队列，存储待显示的对话
     private string currentFullText;          // 当前要显示的完整文本内容
     private bool isTyping = false;           // 是否正在打字中
     private bool isActive = false;           // 对话框是否处于活动状态
@@ -176,7 +154,7 @@ public class DialogueManager : MonoBehaviour
         }
         
         // 创建一个临时的对话行并加入队列
-        lineQueue.Enqueue(new DialogueLine
+        lineQueue.Enqueue(new DialogueEntry
         {
             //speakerName = speaker,
             content = content,
@@ -209,7 +187,7 @@ public class DialogueManager : MonoBehaviour
         }
 
         // 从队列取出第一句对话
-        DialogueLine line = lineQueue.Dequeue();
+        DialogueEntry line = lineQueue.Dequeue();
 
         // 更新说话人名字
         //nameText.text = line.speakerName;

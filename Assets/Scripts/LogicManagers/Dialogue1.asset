@@ -9,26 +9,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 395b59f24300f7e43a5a63da0c605cc7, type: 3}
   m_Name: Dialogue1
   m_EditorClassIdentifier: Assembly-CSharp::DialogueData
   lines:
-  - speakerName: ' '
-    avatar: {fileID: 21300000, guid: 5a472bed8c925d54c88c9848f2e0dd82, type: 3}
+  - avatar: {fileID: 21300000, guid: 5a472bed8c925d54c88c9848f2e0dd82, type: 3}
     content: Irohaaa... My stomach is rumbling. I'm so hungry.
-  - speakerName: ' '
-    avatar: {fileID: 21300000, guid: 5a472bed8c925d54c88c9848f2e0dd82, type: 3}
-    content: "I'm craving your special, fluffy Souffl\xE9 pancakes!"
-  - speakerName: ' '
-    avatar: {fileID: 21300000, guid: 8293de3f1bb94bf4baf3a7d5cd3aff72, type: 3}
+  - avatar: {fileID: 21300000, guid: 5a472bed8c925d54c88c9848f2e0dd82, type: 3}
+    content: I'm craving your special, fluffy pancakes!
+  - avatar: {fileID: 21300000, guid: 8293de3f1bb94bf4baf3a7d5cd3aff72, type: 3}
     content: My pancakes? But you know my cooking is a bit... hit-or-miss.
-  - speakerName: ' '
-    avatar: {fileID: 21300000, guid: 5a472bed8c925d54c88c9848f2e0dd82, type: 3}
+  - avatar: {fileID: 21300000, guid: 5a472bed8c925d54c88c9848f2e0dd82, type: 3}
     content: I don't mind! They're the best because you make them for me.
-  - speakerName: ' '
-    avatar: {fileID: 21300000, guid: 8293de3f1bb94bf4baf3a7d5cd3aff72, type: 3}
+  - avatar: {fileID: 21300000, guid: 8293de3f1bb94bf4baf3a7d5cd3aff72, type: 3}
     content: (Sighs softly) You always know just what to say, don't you?
-  - speakerName: ' '
-    avatar: {fileID: 21300000, guid: 8293de3f1bb94bf4baf3a7d5cd3aff72, type: 3}
+  - avatar: {fileID: 21300000, guid: 8293de3f1bb94bf4baf3a7d5cd3aff72, type: 3}
     content: Alright, I'll get the ingredients. One batch of pancakes, coming right
       up!
